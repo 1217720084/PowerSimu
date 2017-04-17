@@ -29,10 +29,6 @@ class bus(base_device):
         for item in self.V0:
             dae.y[item] = 1.0
 
-    def gcall(self):
-        return
-
-
 
 
 

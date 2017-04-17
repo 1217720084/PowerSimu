@@ -26,3 +26,11 @@ class pq(base_device):
             dae.g[key] += value
         for key, value in zip(self.a, self.Pl):
             dae.g[key] += value
+
+    def gcall(self,dae):
+        dae.g[self.v] = self.P1 + self.Pg
+        i = 0
+        while i < self.n:
+            dae.g[self.v] -= dae.y[v] * dae.y[i] * (G * cos(dae.y[a] - dae.y[i]) + B * sin(dae.y[a] - dae.y[i]))
+            i += 1
+        return
