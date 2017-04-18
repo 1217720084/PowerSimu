@@ -29,7 +29,10 @@ class bus(base_device):
         for item in self.V0:
             dae.y[item] = 1.0
 
-    def add(self, idx=None, name=None, **kwargs):
+    def gcall(self):
+        return
 
-        base_device.add(self, idx, name, **kwargs)
-        system.DAE.n_bus +=1
+
+
+
+
