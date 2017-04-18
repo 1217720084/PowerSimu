@@ -1,3 +1,4 @@
+# _*_ coding:utf-8 _*_
 """
 
 
@@ -184,6 +185,7 @@ class base_device:
     def _list2matrix(self):
 
         for item in self._params:
+
             self.__dict__[item] = matrix(self.__dict__[item])
 
     def _matrix2list(self):

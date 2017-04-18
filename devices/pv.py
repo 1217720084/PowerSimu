@@ -13,7 +13,7 @@ class pv(base_device):
         self._type = 'PV'
         self._name = 'PV'
         self._bus = {'bus': ['a', 'v']}
-        self._algebs = ['V0']
+        self._algebs = ['Va', 'V0']
         self._params.extend(['Pg', 'qgmax', 'qgmin', 'V0', 'Vmax', 'Vmin',])
         self.n_PV = 0
         self._voltages = ['V0']
@@ -31,11 +31,6 @@ class pv(base_device):
             dae.g[key] += value
 
 
-
-
-
-
-
 class slack(base_device):
     def __init__(self):
 
@@ -44,7 +39,7 @@ class slack(base_device):
         self._type = 'SW'
         self._name = 'SW'
         self._bus = {'bus': ['a', 'v']}
-        self._algebs = ['V0','Va']
+        self._algebs = ['V0', 'Va']
         self._params.extend(['Pg', 'qgmax', 'qgmin', 'V0', 'Vmax', 'Vmin', 'Va'])
         self._voltages = ['V0']
         self._powers = ['Pg']

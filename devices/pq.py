@@ -13,16 +13,16 @@ class pq(base_device):
         self._type = 'PQ'
         self._name = 'PQ'
         self._bus = {'bus': ['a', 'v']}
-        self._algebs = ['V0', 'Va']
+        self._algebs = ['Va', 'V0']
         self._params.extend(['Pl', 'Ql',  'Vmax', 'Vmin'])
         self._powers = ['Pl', 'Ql']
 
-    def yinit(self, dae):
+    def yinit(self, a1):
 
-        dae.y = system.DAE.y
-        dae.g = system.DAE.g
+        a1.y = system.DAE.y
+        a1.g = system.DAE.g
         # dae.Gy = sparse(m*m)
         for key, value in zip(self.v, self.Ql):
-            dae.g[key] += value
+            a1.g[key] += value
         for key, value in zip(self.a, self.Pl):
-            dae.g[key] += value
+            a1.g[key] += value

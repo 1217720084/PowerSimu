@@ -10,7 +10,7 @@ class bus(base_device):
         self._name = 'Bus'
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['Va', 'V0']
-        self._params.extend(['Vb','Pl', 'Ql', 'Pg', 'Qg'])
+        self._params.extend(['Vb', 'Pl', 'Ql', 'Pg', 'Qg'])
 
     def _bus_index(self,):
 
@@ -29,10 +29,7 @@ class bus(base_device):
         for item in self.V0:
             dae.y[item] = 1.0
 
-    def gcall(self):
-        return
+    def add(self, idx=None, name=None, **kwargs):
 
-
-
-
-
+        base_device.add(self, idx, name, **kwargs)
+        system.DAE.n_bus +=1
