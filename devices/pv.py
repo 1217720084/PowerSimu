@@ -57,3 +57,11 @@ class slack(base_device):
             dae.g[key] = 0
         for key, value in zip(self.v, self.Pg):
             dae.g[key] = 0
+
+    def gcall(self,dae):
+        dae.g[self.v] = self.P1 + self.Pg
+        i = 0
+        while i < self.n: #PV,PQ节点索引号排列顺序？
+            dae.g[self.v] -= dae.y[v] * dae.y[i] * (G * cos(dae.y[a] - dae.y[i]) + B * sin(dae.y[a] - dae.y[i]))
+            i += 1
+        return

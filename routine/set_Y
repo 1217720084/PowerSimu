@@ -1,7 +1,7 @@
 import system
 
 def Y_init():
-    zeros = [0] * (2 * system.Bus.n)
+    zeros = [0] * (system.Bus.n)
     system.DAE.Y = zeros[:]
 
 def Y_set():
@@ -10,8 +10,10 @@ def Y_set():
     while i < Line.n:
         if system.Line.kT[i] == 0:
             system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i])
-        # else:
-        #     system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i]
-        #     system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += system.Line.r[i] * system.Line.kT[i] / (k - 1)
-        #     system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i] ^ 2 / (1 - k)
+            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(0, system.Line.b[i] / 2)
+            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(0, system.Line.b[i] / 2)
+        else: #变压器支路参数？
+            system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i]
+            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += system.Line.r[i] * system.Line.kT[i] / (k - 1)
+            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i] ^ 2 / (1 - k)
         i += 1
