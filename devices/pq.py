@@ -28,10 +28,35 @@ class pq(base_device):
             dae.g[key] += value
 
     def gcall(self,dae):
-        dae.g[self.a] = self.P1 + self.Pg
-        dae.g[self.v] = self.Q1 + self.Qg
+        dae.g[self.a] = self.Pl + self.Pg
+        dae.g[self.v] = self.Ql + self.Qg
         i = 0
         while i < dae.n_bus:#system.Bus.n
             dae.g[self.a] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
-            dae.g[self.v] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
+            dae.g[self.v] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))
             i += 1
+    def gycall(self,dae):
+        i = 0
+        while i < dae.n_bus:
+            if self.a != i:
+                dae.gy[self.a][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))
+                dae.gy[self.v][i] = dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
+                dae.gy[self.s][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
+                dae.gy[self.t][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))
+            else:
+                dae.gy[self.a][i] = dae.y[v] * dae.y[v] * system.DAE.Y_B[self.a][self.a] + self.Ql + self.Qg   #
+                system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) -  * cos(
+                    dae.y[a] - dae.y[i]))
+                dae.gy[self.v][i] = dae.y[v] * dae.y[i] * (
+                system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(
+                    dae.y[a] - dae.y[i]))
+                dae.gy[self.s][i] = - dae.y[v] * dae.y[i] * (
+                system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(
+                    dae.y[a] - dae.y[i]))
+                dae.gy[self.t][i] = - dae.y[v] * dae.y[i] * (syst
+
+
+            i += 1
+
+
+
