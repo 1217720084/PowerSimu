@@ -69,3 +69,6 @@ class slack(base_device):
     def gcall(self,dae):
         dae.g[self.a] = 0
         dae.g[self.v] = 0
+    def gycall(self,dae):
+        dae.gy[self.a] = 0
+        dae.gy[self.v] = 0
