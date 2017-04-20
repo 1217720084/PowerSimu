@@ -6,6 +6,8 @@ class dae():
         self.g = []          # 代数方程
         self.y = []          # 代数变量
         self.Y = []          # 导纳矩阵
+        self.Y_G = []        # 导纳矩阵实部
+        self.Y_B = []        # 导纳矩阵虚部
         self.Gy = []         # 代数方程的雅可比矩阵
         self.nx = 0          # 状态变量个数
         self.ny = 0          # 代数变量个数，默认为0

@@ -30,6 +30,14 @@ class pv(base_device):
         for key, value in zip(self.a, self.Pg):
             dae.g[key] += value
 
+    def gcall(self,dae):
+        dae.g[self.a] = self.P1 + self.Pg
+        dae.g[self.v] = 0
+        i = 0
+        while i < dae.n_bus:#system.Bus.n
+            dae.g[self.a] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
+            i += 1
+
 
 class slack(base_device):
     def __init__(self):
@@ -59,9 +67,5 @@ class slack(base_device):
             dae.g[key] = 0
 
     def gcall(self,dae):
-        dae.g[self.v] = self.P1 + self.Pg
-        i = 0
-        while i < self.n: #PV,PQ节点索引号排列顺序？
-            dae.g[self.v] -= dae.y[v] * dae.y[i] * (G * cos(dae.y[a] - dae.y[i]) + B * sin(dae.y[a] - dae.y[i]))
-            i += 1
-        return
+        dae.g[self.a] = 0
+        dae.g[self.v] = 0

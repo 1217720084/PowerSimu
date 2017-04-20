@@ -12,8 +12,10 @@ def Y_set():
             system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i])
             system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(0, system.Line.b[i] / 2)
             system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(0, system.Line.b[i] / 2)
-        else: #变压器支路参数？
-            system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i]
-            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += system.Line.r[i] * system.Line.kT[i] / (k - 1)
-            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += system.Line.r[i] * system.Line.kT[i] ^ 2 / (1 - k)
+        else:
+            system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i]
+            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] / (k - 1)
+            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] ^ 2 / (1 - k)
         i += 1
+    system.DAE.Y_G = real(system.DAE.Y)
+    system.DAE.Y_B = imag(system.DAE.Y)
