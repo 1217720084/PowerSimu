@@ -196,3 +196,4 @@ class base_device:
     # 删除某一个元件
     def remove(self, idx = None):
         return
+

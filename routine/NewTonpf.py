@@ -29,37 +29,39 @@ def powerflow():
     # main loop
     while max(abs(dae.g)) > tol and iteration <= iter_max:
          inc = calcInc()
-         system.DAE.y += inc
+         i = 0
+         j = 1
+         #一个元素一个元素的更新的
+         while i < dae.n_bus:
+             while j < dae.n_bus:
+                 dae.y[i]-=inc[i]
+                 dae.y[j]-=dae.y[j]*inc(j)dae.y       #注意inc里的Δv不是直接表示而是用Δv/v
+                 i+=2
+                 j+=2
+
          iteration += 1
-         Gcall()
+         for self.a in range(dae.n_bus):
+             for self.v in range(dae.n_bus):
+                 gcall()
          # stop if the error increases too much
     if iteration > iter_max:
         print ('Reached maximum number of iterations')
         convergence = False
     else:
-        #先求PV节点无功
-        # V[i] = system.PV.__dict__['_data']['V0'][i - 1]
-        # V[j] = system.PV.__dict__['_data']['V0'][j - 1]
-        # G[i][j] =
-        # B[i][j] =
-        # Va[i] =
-        # Va[j] =      #对应pv节点的电压相角
-        # P[i]
-        # Q[i]        #对应pv节点的P,Q
+        #求pv节点的q
         sumq[i]=0
-        for i in range(pv.self.n):
-            for j in range(bus.self.n):
-                if i~j:   #j与i直接相连
-                    sumq[i] = V[j] * (G[i][j] *sin(Va[i]-Va[j]) - B[i][j]* cos(Va[i]-Va[j]))
-            Q[i]=V[i]*sumq[i]
+
+        for i in range(dae.n_pv):
+            for j in range(dae.n_pv):
+                    sumq[i]+= dae.y[j+1] *(system.DAE.Y_G[i][j] * cos(dae.y[i] - dae.y[j]) + system.DAE.Y_B[i][j] * sin(dae.y[i]-dae.y[j])
+            Qpv[i]=V[i]*sumq[i]
 
         #求平衡节点有无功
-        sumps[bus.self.n] = 0
-        sumqs[bus.self.n] = 0
-        for j in range(bus.self.n):
-            if i~j:       #j与i直接相连
-                sumps[bus.self.n] = V[j] * (G[bus.self.n][j] * cos(Va[bus.self.n] - Va[j]) + B[bus.self.n][j] * sin(Va[bus.self.n] - Va[j]))
-                sumqs[bus.self.n] = V[j] * (G[bus.self.n][j] *  sin(Va[bus.self.n] - Va[j]) - B[bus.self.n][j] * cos(Va[bus.self.n] - Va[j]))
-        Ps[bus.self.n] = V[bus.self.n] * sumps[bus.self.n]
-        Qs[bus.self.n] = V[bus.self.n] * sumqs[bus.self.n]
+        sumps= 0
+        sumqs= 0
+        for i in range(bus.self.n):
+                sumps = dae.y[i+1] * (system.DAE.Y_G[bus,self.n][i] * cos(dae.y[bus.self.n] - dae.y[i]) + system.DAE.Y_G[bus,self.n][i] * sin(dae.y[bus.self.n] - dae.y[i])
+                sumqs = dae.y[i+1] * (system.DAE.Y_G[bus,self.n][i] * sin(dae.y[bus.self.n] - dae.y[i]) - system.DAE.Y_G[bus,self.n][i] * cos(dae.y[bus.self.n])
+        Ps[bus.self.n] = dae.y[bus.self.n+1] * sumps
+        Qs[bus.self.n] = dae.y[bus.self.n+1] * sumqs
         print('result')

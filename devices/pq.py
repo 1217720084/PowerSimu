@@ -51,4 +51,3 @@ class pq(base_device):
             i += 1
 
 
-
