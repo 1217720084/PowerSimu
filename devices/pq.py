@@ -28,26 +28,8 @@ class pq(base_device):
             dae.g[key] += value
 
     def gcall(self,dae):
-        dae.g[self.a] = self.Pl + self.Pg
-        dae.g[self.v] = self.Ql + self.Qg
-        i = 0
-        while i < dae.n_bus:#system.Bus.n
-            dae.g[self.a] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
-            dae.g[self.v] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))
-            i += 1
-    def Gycall(self,dae):
-        i = 0
-        while i < dae.n_bus:           #总共n个节点
-            if self.a != i:             #i不等于j的情况
-                dae.Gy[self.a][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))     #H[i][j] 实质是某一行的元素，在主程序调用时还需要循环一次
-                dae.Gy[self.v][i] = dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))        #J[i][j]
-                dae.Gy[self.s][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))      #N[i][j]
-                dae.Gy[self.t][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))      #L[i][j]
-            else:
-                dae.Gy[self.a][self.a] = dae.y[v] * dae.y[v] * system.DAE.Y_B[self.a][self.a] + self.Ql + self.Qg   #当j不等于i时的表达式，self.Ql + self.Qg表示Qi可能有问题
-                dae.Gy[self.v][self.a] = dae.y[v] * dae.y[v]  * system.DAE.Y_G[self.a][self.a] - (self.Pl + self.Qg)
-                dae.Gy[self.s][self.a] = - dae.y[v] * dae.y[v] * system.DAE.Y_G[self.a][self.a] - (self.Pl + self.Qg)
-                dae.Gy[self.t][self.a] = dae.y[v] * dae.y[v] * system.DAE.Y_B[self.a][self.a] - (self.Ql + self.Qg)
-            i += 1
 
-
+        for item1 in self.a:
+            dae.g[item1] += self.Pl[item1]
+        for item2 in self.v:
+            dae.g[item2] += self.Ql[item2]

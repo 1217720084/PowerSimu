@@ -1,22 +1,24 @@
+
 import system
+from cvxopt.base import matrix
+from numpy import np
 
 def Y_init():
-    zeros = [0] * (system.Bus.n)
-    system.DAE.Y = zeros[:]
+    zeros = matrix(0, system.Bus.n, system.Bus.n)
 
 def Y_set():
     Line_n = len(system.Line.r)
     i = 0
-    while i < Line.n:
+    while i < Line_n:
         if system.Line.kT[i] == 0:
             system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i])
             system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(0, system.Line.b[i] / 2)
             system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(0, system.Line.b[i] / 2)
         else:
             system.DAE.Y[system.Line.f_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i]
-            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] / (k - 1)
-            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] ^ 2 / (1 - k)
+            system.DAE.Y[system.Line.f_bus][system.Line.f_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] / (system.Line.kT[i] - 1)
+            system.DAE.Y[system.Line.to_bus][system.Line.to_bus] += complex(system.Line.r[i], system.Line.x[i]) * system.Line.kT[i] ^ 2 / (1 - system.Line.kT[i])
         i += 1
-    system.DAE.Y_G = real(system.DAE.Y)
-    system.DAE.Y_B = imag(system.DAE.Y)
+    system.DAE.Y_G = np.real(system.DAE.Y)
+    system.DAE.Y_B = np.imag(system.DAE.Y)
 
