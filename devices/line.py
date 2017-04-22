@@ -72,6 +72,7 @@ class line(base_device):
             spmatrix(y1, self.at, self.af, (system.Bus.n, system.Bus.n)) +\
             spmatrix(y/ts2 + chrg, self.af, self.af, (system.Bus.n, system.Bus.n)) +\
             spmatrix(y + chrg, self.at, self.at, (system.Bus.n, system.Bus.n))
+        system.DAE.Y = self.Y
 
 
         print(self.Y)
