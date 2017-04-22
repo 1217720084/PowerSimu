@@ -2,7 +2,6 @@ import system
 
 def Y_init():
     zeros = [0] * (system.Bus.n)
-
     system.DAE.Y = zeros[:]
 
 def Y_set():
