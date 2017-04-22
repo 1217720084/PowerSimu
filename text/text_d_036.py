@@ -7,6 +7,7 @@
 # import
 
 import system
+from cvxopt.base import spmatrix, sparse
 
 system.Bus._init_data()
 system.PV._init_data()
@@ -158,3 +159,6 @@ print(system.DAE.__dict__)
 system.Line._bus_index()
 print('Line:')
 print(system.Line.__dict__)
+system.Line.build_y()
+#system.DAE.Y = sparse(system.DAE.Y)
+#print(system.DAE.Y)

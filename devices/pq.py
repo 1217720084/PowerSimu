@@ -28,8 +28,11 @@ class pq(base_device):
             dae.g[key] += value
 
     def gcall(self,dae):
-        dae.g[self.a] = self.Pl + self.Pg
-        dae.g[self.v] = self.Ql + self.Qg
+        for item in self.a:
+            dae.g[item] += self.Pl[item]
+        for item in self.v:
+            dae.g[item] += self.Ql[item]
+
         i = 0
         while i < dae.n_bus:#system.Bus.n
             dae.g[self.a] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))

@@ -3,6 +3,7 @@
 """
 from devices.base_device import base_device
 import system
+from cvxopt.base import matrix
 
 
 class line(base_device):
@@ -29,4 +30,47 @@ class line(base_device):
                 else:
                     idx = system.Bus.int[item]
                     self.__dict__[self._bus[index][0]].append(system.Bus.a[idx])
-                    self.__dict__[self._bus[index][1]].append(system.Bus.a[idx]+system.DAE.n_bus)
+                    self.__dict__[self._bus[index][1]].append(system.Bus.a[idx]+system.Bus.n)
+
+    def build_y(self):
+
+        zero = [0] * system.Bus.n
+        zeros = [zero] * system.Bus.n
+        system.DAE.Y = zeros
+        Line_n = len(self.r)
+        i = 0
+        while i < Line_n:
+            if system.Line.kT[i] == 0:
+                system.DAE.Y[self.af[i]][self.at[i]] += -complex(self.r[i], self.x[i])
+                print(system.DAE.Y[1])
+                system.DAE.Y[self.at[i]][self.af[i]] += -complex(self.r[i], self.x[i])
+                system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
+                system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
+            else:
+                system.DAE.Y[self.af[i]][self.at[i]] += -complex(self.r[i], self.x[i]) * \
+                                                         self.kT[i]
+                system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) * self.kT[i] + complex(self.r[i], self.x[i]) * \
+                                                        self.kT[i] / (self.kT[i] - 1)
+                system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) * self.kT[i] + complex(self.r[i], self.x[i]) * \
+                                                          self.kT[i] ** 2 / (1 - self.kT[i])
+            i += 1
+            # print(matrix(system.DAE.Y))
+        # for i in range(Line_n):
+        #     if system.Line.kT[i] == 0:
+        #       system.DAE.Y[self.af[i]][self.at[i]] += - 1/(complex(self.r[i], self.x[i]))
+        #       print(system.DAE.Y[10])
+        #       system.DAE.Y[self.at[i]][self.af[i]] += -complex(self.r[i], self.x[i])
+        #       print(system.DAE.Y[24])
+        #       system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
+        #       system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
+
+
+
+
+        system.DAE.Y_G = matrix.real(matrix(system.DAE.Y))
+        system.DAE.Y_B = matrix.imag(matrix(system.DAE.Y))
+
+        system.DAE.Y = matrix(system.DAE.Y)
+
+        # for i in range(system.Bus.n):
+        #     system.DAE.Y = matrix([zero, system.DAE.Y[i]])
