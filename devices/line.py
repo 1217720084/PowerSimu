@@ -3,7 +3,9 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix
+from cvxopt.base import matrix, spmatrix, cos, sin, sparse
+import math
+import numpy as np
 
 
 class line(base_device):
@@ -34,44 +36,42 @@ class line(base_device):
 
     def build_y(self):
 
-        zero = [0] * system.Bus.n
-        zeros = [zero] * system.Bus.n
-        system.DAE.Y = zeros
-        Line_n = len(self.r)
-        i = 0
-        while i < Line_n:
-            if system.Line.kT[i] == 0:
-                system.DAE.Y[self.af[i]][self.at[i]] += -complex(self.r[i], self.x[i])
-                print(system.DAE.Y[1])
-                system.DAE.Y[self.at[i]][self.af[i]] += -complex(self.r[i], self.x[i])
-                system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
-                system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
-            else:
-                system.DAE.Y[self.af[i]][self.at[i]] += -complex(self.r[i], self.x[i]) * \
-                                                         self.kT[i]
-                system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) * self.kT[i] + complex(self.r[i], self.x[i]) * \
-                                                        self.kT[i] / (self.kT[i] - 1)
-                system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) * self.kT[i] + complex(self.r[i], self.x[i]) * \
-                                                          self.kT[i] ** 2 / (1 - self.kT[i])
-            i += 1
-            # 0.0
-            # print(matrix(system.DAE.Y))
-        # for i in range(Line_n):
-        #     if system.Line.kT[i] == 0:
-        #       system.DAE.Y[self.af[i]][self.at[i]] += - 1/(complex(self.r[i], self.x[i]))
-        #       print(system.DAE.Y[10])
-        #       system.DAE.Y[self.at[i]][self.af[i]] += -complex(self.r[i], self.x[i])
-        #       print(system.DAE.Y[24])
-        #       system.DAE.Y[self.af[i]][self.af[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
-        #       system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) + complex(0, self.b[i] / 2)
+        for i in range(len(self.tap_ratio)):
+            if self.tap_ratio[i] == 0:
+                self.tap_ratio[i] = 1
+        print(self.tap_ratio)
+
+        # chrg = np.mat(self.b) * 0.5
+        # chrg = chrg.T
+        #
+        # print(chrg)
+        chrg = np.array(np.zeros((len(self.b), 1), complex))
+        for i in range(len(self.x)):
+            chrg[i] = complex(0, self.b[i] * 0.5)
+
+        #print(chrg)
+        #zeros = [0] * len(self.x)
+        #y = matrix(zeros, (len(self.x), 1, complex))
+        y = np.array(np.zeros((len(self.x), 1), complex))
+        for i in range(len(self.x)):
+            y[i] = 1 / complex(self.r[i], self.x[i])
+        #print(y)
+
+        ts = np.array(np.zeros((len(self.theta), 1), complex))
+        for i in range(len(self.theta)):
+            ts[i] = complex(self.tap_ratio[i]*cos(self.theta[i]*math.pi/180), self.tap_ratio[i]*sin(self.theta[i]*math.pi/180))
+        #print(ts)
+
+        ts2 = ts * ts.conj()
+        #print(ts2)
+
+        y1 = -y / ts.conj()
+        #print(y1)
+
+        self.Y = spmatrix(y1, self.af, self.at, (system.Bus.n, system.Bus.n)) +\
+            spmatrix(y1, self.at, self.af, (system.Bus.n, system.Bus.n)) +\
+            spmatrix(y/ts2 + chrg, self.af, self.af, (system.Bus.n, system.Bus.n)) +\
+            spmatrix(y + chrg, self.at, self.at, (system.Bus.n, system.Bus.n))
 
 
-
-
-        system.DAE.Y_G = matrix.real(matrix(system.DAE.Y))
-        system.DAE.Y_B = matrix.imag(matrix(system.DAE.Y))
-
-        system.DAE.Y = matrix(system.DAE.Y)
-
-        # for i in range(system.Bus.n):
-        #     system.DAE.Y = matrix([zero, system.DAE.Y[i]])
+        print(self.Y)
