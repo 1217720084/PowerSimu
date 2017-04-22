@@ -54,6 +54,7 @@ class line(base_device):
                 system.DAE.Y[self.at[i]][self.at[i]] += complex(self.r[i], self.x[i]) * self.kT[i] + complex(self.r[i], self.x[i]) * \
                                                           self.kT[i] ** 2 / (1 - self.kT[i])
             i += 1
+            # 0.0
             # print(matrix(system.DAE.Y))
         # for i in range(Line_n):
         #     if system.Line.kT[i] == 0:
