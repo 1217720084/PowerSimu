@@ -27,14 +27,12 @@ class pq(base_device):
         for key, value in zip(self.a, self.Pl):
             dae.g[key] += value
 
-    def gcall(self,dae):
-        dae.g[self.a] = self.Pl + self.Pg
-        dae.g[self.v] = self.Ql + self.Qg
-        i = 0
-        while i < dae.n_bus:#system.Bus.n
-            dae.g[self.a] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))
-            dae.g[self.v] -= dae.y[v] * dae.y[i + dae.n_bus] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))
-            i += 1
+    def gcall(self):
+        for i in range(system.PQ.n):
+            system.DAE.g[self.a[i]] += self.Pl[i]
+            system.DAE.g[self.v[i]] += self.Ql[i]
+
+
     def Gycall(self,dae):
         i = 0
         while i < dae.n_bus:           #总共n个节点

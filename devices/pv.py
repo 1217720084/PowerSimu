@@ -30,13 +30,11 @@ class pv(base_device):
         for key, value in zip(self.a, self.Pg):
             dae.g[key] += value
 
-    def gcall(self,dae):
+    def gcall(self):
 
-        for item1 in self.a:
-            dae.g[item1] += self.Pg[item1]
-        for item2 in self.v:
-            dae.g[item2] += 0
-        i = 0
+        for i in range(system.PV.n):
+            system.DAE.g[self.a[i]] -= self.Pg[i]
+            #system.DAE.g[self.v[i]] -= 0
 
 class slack(base_device):
     def __init__(self):
@@ -65,9 +63,9 @@ class slack(base_device):
         for key, value in zip(self.v, self.Pg):
             dae.g[key] = 0
 
-    def gcall(self,dae):
+    def gcall(self):
 
-        for item1 in self.a:
-            dae.g[item1] += 0
-        for item2 in self.v:
-            dae.g[item2] += 0
+        for i in range(system.PV.n):
+            system.DAE.g[self.a[i]] -= self.Pg[i]
+            #system.DAE.g[self.v[i]] -= 0
+
