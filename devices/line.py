@@ -77,6 +77,7 @@ class line(base_device):
 
 
         print(self.Y)
+        print(self.Y.V)
 
     def gcall(self):
         # V0 = np.array(np.ones((system.Bus.n, 1), complex))
@@ -99,6 +100,7 @@ class line(base_device):
 
         I = np.matmul(self.Y, Vc)
         print(I)
+        I = I.conj() #?
         #print(I.ndim)
 
         S = Vc * I
