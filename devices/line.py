@@ -3,7 +3,8 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix, spmatrix, cos, sin, sparse
+from cvxopt.base import matrix, spmatrix, cos, sin, sparse, mul
+import cvxopt.blas
 import math
 import numpy as np
 
@@ -76,3 +77,39 @@ class line(base_device):
 
 
         print(self.Y)
+
+    def gcall(self):
+        # V0 = np.array(np.ones((system.Bus.n, 1), complex))
+        # for i in system.Bus.v:
+        #     V0[i] = system.DAE.y[i]
+        # Va = np.array(np.ones((system.Bus.n, 1), complex))
+        # for i in system.DAE.a:
+        #     Va[i] = complex(0, system.DAE.y[i])
+        Vc = np.array(np.ones((system.Bus.n, 1), complex))
+        for i in range(system.Bus.n):
+            Vc[i] = complex(system.DAE.y[i + system.Bus.n], system.DAE.y[i])
+
+        Vc = matrix(Vc)
+        print(Vc)
+        print(Vc.size)
+        print(self.Y.size)
+        print(type(Vc))
+        self.Y = matrix(self.Y)
+        print(type(self.Y))
+
+        I = np.matmul(self.Y, Vc)
+        print(I)
+        #print(I.ndim)
+
+        S = Vc * I
+        S = matrix(S)
+        print(S)
+        self.p = S.real()
+        print(self.p)
+        self.q = S.imag()
+        print(self.q)
+        for i in range(system.Bus.n):
+             system.DAE.g[i] = self.p[i]
+             system.DAE.g[i+system.Bus.n] = self.q[i]
+
+
