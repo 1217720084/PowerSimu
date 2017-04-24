@@ -75,6 +75,11 @@ class line(base_device):
             spmatrix(y + chrg, self.at, self.at, (system.Bus.n, system.Bus.n))
         system.DAE.Y = self.Y
 
+        system.DAE.Y_G = self.Y.real()
+        print(system.DAE.Y_G)
+        system.DAE.Y_B = self.Y.imag()
+        print(system.DAE.Y_B)
+
 
         print(self.Y)
         print(self.Y.V)
