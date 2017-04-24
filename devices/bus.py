@@ -30,14 +30,7 @@ class bus(base_device):
         for item in self.V0:
             dae.y[item] = 1.0
 
-    def gcall(self, dae):
 
-        i = 0
-        while i < self.n:
-            for item1, item2 in self.a, self.v:
-                dae.g[item1] -= dae.y[item2] * dae.y[i + self.n] * (system.DAE.Y_G[item1][i] * cos(dae.y[item1] - dae.y[i]) + system.DAE.Y_B[item1][i] * sin(dae.y[item1] - dae.y[i]))
-                dae.g[item1] -= dae.y[item2] * dae.y[i + self.n] * (system.DAE.Y_G[item1][i] * sin(dae.y[item1] - dae.y[i]) - system.DAE.Y_B[item1][i] * cos(dae.y[item1] - dae.y[i]))
-            i += 1
 
 
 

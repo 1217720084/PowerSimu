@@ -9,7 +9,7 @@ class pv(base_device):
     def __init__(self):
 
         base_device.__init__(self)
-        self._data.update({'Pg': 1, 'bus': None, 'qgmax': 6, 'qgmin': -6, 'V0': 1.05, 'Vmax': 1.1, 'Vmin': 0.95,})
+        self._data.update({'Pg': 1, 'qg': 0, 'bus': None, 'qgmax': 6, 'qgmin': -6, 'V0': 1.05, 'Vmax': 1.1, 'Vmin': 0.95,})
         self._type = 'PV'
         self._name = 'PV'
         self._bus = {'bus': ['a', 'v']}
@@ -81,14 +81,29 @@ class slack(base_device):
 
         # Qmin
         err = [0] * self.n
-        a = []
+
         for i in range(len(self.n)):
             err[i] = self.qgmin[i] - system.DAE.g[self.v[i]] - prev_err
         max_err = max(err)
-        for i in range(len(self.n)):
-            if max_err[i] == err[i]:
-                a = i
         if max_err > 0:
-            self.qg[i] = self.qgmin[i]
-            self.pq[i] = 1
+            for i in range(len(self.n)):
+                if max_err[i] == err[i]:
+                    self.qg[i] = self.qgmin[i]
+                    self.pq[i] = 1
+                    self.newpq = ~system.settings.multipvswitch
 
+        # Qmax
+        err = [0] * self.n
+
+        for i in range(len(self.n)):
+            err[i] = self.qgmax[i] - system.DAE.g[self.v[i]] + prev_err
+        min_err = min(err)
+        if max_err < 0 & ~self.newpq:
+            for i in range(len(self.n)):
+                if min_err[i] == err[i]:
+                    self.qg[i] = self.qgmax[i]
+                    self.pq[i] = 1
+                    self.newpq = ~system.settings.multipvswitch
+
+        for i in range(system.PV.n):
+            system.DAE.g[self.v[i]] -= self.qg[i]

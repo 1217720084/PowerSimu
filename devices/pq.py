@@ -35,7 +35,7 @@ class pq(base_device):
 
         a = []
         b = []
-        for i in range(len(self.n)):
+        for i in range(self.n):
             if system.DAE.y[self.v[i]] < self.Vmin[i]:
                 system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] ** system.DAE.y[self.v[i]] / \
                                                                          self.Vmin[i] / self.Vmin[i]

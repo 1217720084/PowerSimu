@@ -88,7 +88,7 @@ class line(base_device):
         #     Va[i] = complex(0, system.DAE.y[i])
         Vc = np.array(np.ones((system.Bus.n, 1), complex))
         for i in range(system.Bus.n):
-            Vc[i] = complex(system.DAE.y[i + system.Bus.n], system.DAE.y[i])
+            Vc[i] = complex(system.DAE.y[i + system.Bus.n] * cos(system.DAE.y[i]), system.DAE.y[i + system.Bus.n] * sin(system.DAE.y[i]))
 
         Vc = matrix(Vc)
         print(Vc)
