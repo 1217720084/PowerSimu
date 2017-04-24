@@ -32,6 +32,7 @@ class pq(base_device):
             system.DAE.g[self.a[i]] += self.Pl[i]
             system.DAE.g[self.v[i]] += self.Ql[i]
         # 判断是否PQ负荷转为恒阻抗模型
+
         a = []
         b = []
         for i in range(len(self.n)):
