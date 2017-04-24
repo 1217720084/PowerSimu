@@ -67,5 +67,28 @@ class slack(base_device):
 
         for i in range(system.PV.n):
             system.DAE.g[self.a[i]] -= self.Pg[i]
-            #system.DAE.g[self.v[i]] -= 0
+            if ~system.settings.pv2pq:
+                system.DAE.g[self.v[i]] -= 0
+
+        #判断PV是否要转为PQ
+
+        if system.settings.iter < system.settings.pv2pqiter:
+            return
+        else:
+            prev_err = 2*system.settings.error
+
+        self.newpq = 0
+
+        # Qmin
+        err = [0] * self.n
+        a = []
+        for i in range(len(self.n)):
+            err[i] = self.qgmin[i] - system.DAE.g[self.v[i]] - prev_err
+        max_err = max(err)
+        for i in range(len(self.n)):
+            if max_err[i] == err[i]:
+                a = i
+        if max_err > 0:
+            self.qg[i] = self.qgmin[i]
+            self.pq[i] = 1
 

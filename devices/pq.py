@@ -31,6 +31,27 @@ class pq(base_device):
         for i in range(system.PQ.n):
             system.DAE.g[self.a[i]] += self.Pl[i]
             system.DAE.g[self.v[i]] += self.Ql[i]
+        # 判断是否PQ负荷转为恒阻抗模型
+        a = []
+        b = []
+        for i in range(len(self.n)):
+            if system.DAE.y[self.v[i]] < self.Vmin[i]:
+                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] ** system.DAE.y[self.v[i]] / \
+                                                                         self.Vmin[i] / self.Vmin[i]
+                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] ** system.DAE.y[self.v[i]] / \
+                                                                         self.Vmin[i] / self.Vmin[i]
+            if system.DAE.y[self.v[i]] > self.Vmax[i]:
+                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] ** system.DAE.y[self.v[i]] / \
+                                                                         self.Vmin[i] / self.Vmin[i]
+                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] ** system.DAE.y[self.v[i]] / \
+                                                                         self.Vmin[i] / self.Vmin[i]
+
+
+
+
+
+
+
 
 
     def Gycall(self,dae):
