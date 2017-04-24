@@ -20,7 +20,7 @@ from devices.fault import fault
 from devices.breaker import breaker
 from devices.zone import zone
 from devices.synchronous import syn2, syn3, syn4, syn5a, syn5b
-from devices.synchronous import syn5c, syn5d, syn6a, syn6b
+from devices.synchronous import syn5c, syn5d, syn6a, syn6b, syn6
 from devices.avr import avr1, avr2, avr3
 from devices.turbine import tg1, tg2
 from devices.pss import pss1, pss2, pss3
@@ -69,6 +69,7 @@ Syn5c = syn5c()
 Syn5d = syn5d()
 Syn6a = syn6a()
 Syn6b = syn6b()
+Syn6 = syn6()
 
 # synchronous machines controls
 Avr1 = avr1()        # automatic voltage regulators

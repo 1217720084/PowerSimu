@@ -15,6 +15,7 @@ system.PQ._init_data()
 system.SW._init_data()
 system.Shunt._init_data()
 system.Line._init_data()
+system.Syn6._init_data()
 
 case = open('text_d_036.txt')
 for each_line in case:
@@ -103,6 +104,31 @@ for each_line in case:
                      'l': l, 'kT': kT, 'r': r, 'x': x,'b': b, 'tap_ratio': tap_ratio,
                      'theta': theta, 'Imax': Imax, 'Pmax': Pmax, 'Smax': Smax}
         system.Line.add(**Line_case)
+
+    if data[0] == 'Syn6':
+        bus = 'Bus_' + str(data[1])
+        Sn = float(data[2])
+        Vn = float(data[3])
+        fn = float(data[4])
+        m_model = float(data[5])
+        xl = float(data[6])
+        ra = float(data[7])
+        xd = float(data[8])
+        xd1 = float(data[9])
+        xd2 = float(data[10])
+        Td01 = float(data[11])
+        Td02 = float(data[12])
+        xq = float(data[13])
+        xq1 = float(data[14])
+        xq2 = float(data[15])
+        Tq01 = float(data[16])
+        Tq02 = float(data[17])
+        M = float(data[18])   # M = 2H
+        D = float(data[19])
+        Syn6_case = {'bus': bus, 'Sn': Sn, 'Vn': Vn, 'fn': fn, 'm_model': m_model,
+                     'xl': xl, 'ra': ra, 'xd': xd, 'xd1': xd1, 'xd2': xd2, 'Td01': Td01, 'Td02': Td02,
+                     'xq': xq, 'xq1': xq1, 'xq2': xq2, 'Tq01': Tq01, 'Tq02': Tq02, 'M': M, 'D': D}
+        system.Syn6.add(**Syn6_case)
 
 case.close()
 

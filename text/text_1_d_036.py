@@ -14,6 +14,9 @@ system.PQ._init_data()
 system.SW._init_data()
 system.Shunt._init_data()
 system.Line._init_data()
+system.Syn6._init_data()
+system.Avr1._init_data()
+system.Avr2._init_data()
 
 case = open('text_d_036.txt')
 for each_line in case:
@@ -104,11 +107,81 @@ for each_line in case:
                      'theta': theta, 'Imax': Imax, 'Pmax': Pmax, 'Smax': Smax}
         system.Line.add(**Line_case)
 
+    if data[0] == 'Syn6':
+        bus = 'Bus_' + str(data[1])
+        Sn = float(data[2])
+        Vn = float(data[3])
+        fn = float(data[4])
+        m_model = float(data[5])
+        xl = float(data[6])
+        ra = float(data[7])
+        xd = float(data[8])
+        xd1 = float(data[9])
+        xd2 = float(data[10])
+        Td01 = float(data[11])
+        Td02 = float(data[12])
+        xq = float(data[13])
+        xq1 = float(data[14])
+        xq2 = float(data[15])
+        Tq01 = float(data[16])
+        Tq02 = float(data[17])
+        M = float(data[18])   # M = 2H
+        D = float(data[19])
+        Syn6_case = {'bus': bus, 'Sn': Sn, 'Vn': Vn, 'fn': fn, 'm_model': m_model,
+                     'xl': xl, 'ra': ra, 'xd': xd, 'xd1': xd1, 'xd2': xd2, 'Td01': Td01, 'Td02': Td02,
+                     'xq': xq, 'xq1': xq1, 'xq2': xq2, 'Tq01': Tq01, 'Tq02': Tq02, 'M': M, 'D': D}
+        system.Syn6.add(**Syn6_case)
+
+    if data[0] == 'Avr2':
+        bus = 'Bus_' + str(data[1])
+        Type = float(data[2])
+        vrmax = float(data[3])
+        vrmin = float(data[4])
+        Ka = float(data[5])
+        Ta = float(data[6])
+        Kf = float(data[7])
+        Tf = float(data[8])
+        Ke = float(data[9])
+        Te = float(data[10])
+        Tr = float(data[11])
+        Ae = float(data[12])
+        Be = float(data[13])
+        Avr2_case = {'bus': bus, 'Type': Type, 'vrmax': vrmax, 'vrmin': vrmin, 'Ka': Ka, 'Ta': Ta, 'Kf': Kf, 'Tf': Tf,
+                     'Ke': Ke, 'Te': Te, 'Tr': Tr, 'Ae': Ae, 'Be': Be}
+        system.Avr2.add(**Avr2_case)
+
+    if data[0] == 'Avr1':
+        bus = 'Bus_' + str(data[1])
+        Type = float(data[2])
+        vrmax = float(data[3])
+        vrmin = float(data[4])
+        Ka = float(data[5])
+        Ta = float(data[6])
+        Kf = float(data[7])
+        Tf = float(data[8])
+        Ke = float(data[9])
+        Te = float(data[10])
+        Tr = float(data[11])
+        Ae = float(data[12])
+        Be = float(data[13])
+        Avr1_case = {'bus': bus, 'Type': Type, 'vrmax': vrmax, 'vrmin': vrmin, 'Ka': Ka, 'Ta': Ta, 'Kf': Kf, 'Tf': Tf,
+                     'Ke': Ke, 'Te': Te, 'Tr': Tr, 'Ae': Ae, 'Be': Be}
+        system.Avr1.add(**Avr1_case)
+
+
+
 case.close()
 
 print(data)
+system.Bus._bus_index()
 print(system.Bus.__dict__)
+print(system.Avr1.__dict__)
+system.Avr1._bus_index()
+system.Avr2._bus_index()
 # print(name)
 print(bus)
-print(Line_case)
-print(system.Line.__dict__)
+print(Avr1_case)
+print(system.Avr1.__dict__)
+
+print(Avr2_case)
+print(system.Avr2.__dict__)

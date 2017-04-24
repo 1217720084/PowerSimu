@@ -116,14 +116,14 @@ class base_device:
         else:
             self.name.append(name)
 
-        #设置默认值
+        # 设置默认值
         for key, value in self._data.items():
             self.__dict__[key].append(value)
 
         # 根据输入参数kwargs覆盖对应值
         for key, value in kwargs.items():
 
-            if not key in self._data:#self._data.has_key(key):
+            if not key in self._data:  # self._data.has_key(key):
                 print('这个设备没有参数<%s>.' % key)
                 continue
 
