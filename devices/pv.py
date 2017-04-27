@@ -3,6 +3,7 @@
 """
 from devices.base_device import base_device
 import system
+from cvxopt.base import matrix
 
 
 class pv(base_device):
@@ -32,11 +33,13 @@ class pv(base_device):
 
     def gcall(self):
 
-        for i in range(system.PV.n):
-            system.DAE.g[self.a[i]] -= self.Pg[i]
-            if ~system.Settings.pv2pq:
-                system.DAE.g[self.v[i]] -= 0
-                return
+        system.DAE.y = matrix(system.DAE.y)
+        system.DAE.g = matrix(system.DAE.g)
+
+        system.DAE.g[self.a] = system.DAE.g[self.a] - matrix(self.Pg)
+        if system.Settings.pv2pq == 0:
+            system.DAE.g[self.v] = 0
+            return
 
         # 判断PV是否要转为PQ
 
@@ -111,7 +114,7 @@ class slack(base_device):
 
         for i in range(system.SW.n):
             system.DAE.g[self.a[i]] = 0
-            if ~system.Settings.pv2pq:
+            if system.Settings.pv2pq == 0:
                 system.DAE.g[self.v[i]] = 0
                 return
 
