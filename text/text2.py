@@ -169,6 +169,7 @@ system.Line.gcall()
 system.PQ.gcall()
 system.Shunt.gcall()
 system.PV.gcall()
+system.SW.gcall()
 print(system.DAE.g)
 print(system.DAE.y)
 
@@ -187,10 +188,10 @@ def calcInc():
     print(system.DAE.g)
     y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
     return y
-system.Line.gcall()
-system.PQ.gcall()
-system.Shunt.gcall()
-system.PV.gcall()
+# system.Line.gcall()
+# system.PQ.gcall()
+# system.Shunt.gcall()
+# system.PV.gcall()
 system.DAE.g = np.array(system.DAE.g)
 iteration = 1
 iter_max = system.Settings.iter
