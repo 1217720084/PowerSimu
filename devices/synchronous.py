@@ -201,6 +201,13 @@ class syn6(base_device):
         self.vf0 = mul(K1, Id) + div(system.Syn6.synsat(), 1-div(self.Taa, self.Td01))
         system.DAE.x[self.vf] = self.vf0
 
+        # !!! 移除静态发电机节点
+
+
+
+
+
+
     def synsat(self):
 
         b = matrix([[0.8 * np.ones((self.n, 1))],[1-self.S10],[1.2 * (1 - self.S12)]])

@@ -7,7 +7,7 @@
 # import
 
 import system
-from cvxopt.base import spmatrix, sparse
+from cvxopt.base import spmatrix, sparse, matrix
 
 system.Bus._init_data()
 system.PV._init_data()
@@ -191,6 +191,6 @@ system.Line.build_y()
 system.Line.gcall()
 system.PQ.gcall()
 system.Shunt.gcall()
-system.PV.gcall()
-print(system.DAE.g)
+# system.PV.gcall()
+print(matrix(system.DAE.g))
 # print(system.DAE.y)

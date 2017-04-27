@@ -85,31 +85,19 @@ class line(base_device):
         print(self.Y.V)
 
     def gcall(self):
-        # V0 = np.array(np.ones((system.Bus.n, 1), complex))
-        # for i in system.Bus.v:
-        #     V0[i] = system.DAE.y[i]
-        # Va = np.array(np.ones((system.Bus.n, 1), complex))
-        # for i in system.DAE.a:
-        #     Va[i] = complex(0, system.DAE.y[i])
-        Vc = np.array(np.ones((system.Bus.n, 1), complex))
-        for i in range(system.Bus.n):
-            Vc[i] = complex(system.DAE.y[i + system.Bus.n] * cos(system.DAE.y[i]), system.DAE.y[i + system.Bus.n] * sin(system.DAE.y[i]))
 
-        Vc = matrix(Vc)
+
+        system.DAE.y = matrix(system.DAE.y)
+        Vn = exp(system.DAE.y[system.Bus.a] * 1j)
+        Vc = mul(system.DAE.y[system.Bus.v] + 0j, Vn)
         print(Vc)
-        print(Vc.size)
-        print(self.Y.size)
-        print(type(Vc))
-        self.Y = matrix(self.Y)
-        print(type(self.Y))
+        print(Vc.H.T)
+        Ic = self.Y * Vc
+        print(Ic)
+        S = mul(Vc, Ic.H.T)
 
-        I = np.matmul(self.Y, Vc)
-        print(I)
-        I = I.conj() #?
-        #print(I.ndim)
 
-        S = Vc * I
-        S = matrix(S)
+
         print(S)
         self.p = S.real()
         print(self.p)

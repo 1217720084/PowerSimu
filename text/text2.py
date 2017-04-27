@@ -174,67 +174,67 @@ print(system.DAE.y)
 
 system.Line.Gycall()
 
-# def calcInc():
-#     system.Line.gcall()
-#     system.PQ.gcall()
-#     system.Shunt.gcall()
-#     system.PV.gcall()
-#     system.Line.Gycall()
-#
-#     print(system.DAE.Gy)
-#     print(system.DAE.g)
-#     system.DAE.g = np.array(system.DAE.g)
-#     print(system.DAE.g)
-#     y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
-#     return y
-# system.Line.gcall()
-# system.PQ.gcall()
-# system.Shunt.gcall()
-# system.PV.gcall()
-# system.DAE.g = np.array(system.DAE.g)
-# iteration = 1
-# iter_max = system.Settings.iter
-# convergence = True  # 收敛
-# tol = system.Settings.error
-#
-# print(system.DAE.y)
-# system.DAE.y=matrix(system.DAE.y)
-#
-# print(system.DAE.y)
-#
-# print(system.DAE.y[system.Bus.a])
-# print(max(abs(system.DAE.g)))
-#
-# inc = calcInc()
-# inc = matrix(inc)
-# system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
-# system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
-#
-# system.Line.gcall()
-# system.PQ.gcall()
-# system.Shunt.gcall()
-# system.PV.gcall()
-# system.DAE.g = np.array(system.DAE.g)
-# print('new')
-# print(max(abs(system.DAE.g)) > tol)
-# print('new')
-#     # main loop
-# while max(abs(system.DAE.g)) > tol and iteration <= iter_max:
-#
-#     inc = calcInc()
-#     inc = matrix(inc)
-#     system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
-#     system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
-#     iteration += 1
-#     system.Line.gcall()
-#     system.PQ.gcall()
-#     system.Shunt.gcall()
-#     system.PV.gcall()
-#     system.DAE.g = np.array(system.DAE.g)
-#     # stop if the error increases too much
-# if iteration > iter_max:
-#     print ('Reached maximum number of iterations')
-#     convergence = False
+def calcInc():
+    system.Line.gcall()
+    system.PQ.gcall()
+    system.Shunt.gcall()
+    system.PV.gcall()
+    system.Line.Gycall()
+
+    print(system.DAE.Gy)
+    print(system.DAE.g)
+    system.DAE.g = np.array(system.DAE.g)
+    print(system.DAE.g)
+    y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
+    return y
+system.Line.gcall()
+system.PQ.gcall()
+system.Shunt.gcall()
+system.PV.gcall()
+system.DAE.g = np.array(system.DAE.g)
+iteration = 1
+iter_max = system.Settings.iter
+convergence = True  # 收敛
+tol = system.Settings.error
+
+print(system.DAE.y)
+system.DAE.y=matrix(system.DAE.y)
+
+print(system.DAE.y)
+
+print(system.DAE.y[system.Bus.a])
+print(max(abs(system.DAE.g)))
+
+inc = calcInc()
+inc = matrix(inc)
+system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
+system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
+
+system.Line.gcall()
+system.PQ.gcall()
+system.Shunt.gcall()
+system.PV.gcall()
+system.DAE.g = np.array(system.DAE.g)
+print('new')
+print(max(abs(system.DAE.g)) > tol)
+print('new')
+    # main loop
+while max(abs(system.DAE.g)) > tol and iteration <= iter_max:
+
+    inc = calcInc()
+    inc = matrix(inc)
+    system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
+    system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
+    iteration += 1
+    system.Line.gcall()
+    system.PQ.gcall()
+    system.Shunt.gcall()
+    system.PV.gcall()
+    system.DAE.g = np.array(system.DAE.g)
+    # stop if the error increases too much
+if iteration > iter_max:
+    print ('Reached maximum number of iterations')
+    convergence = False
 
 
 
