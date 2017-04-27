@@ -3,7 +3,8 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix, spmatrix
+from cvxopt.base import matrix, spmatrix, mul
+from numpy import multiply
 import numpy as np
 
 
@@ -29,7 +30,7 @@ class shunt(base_device):
             V[i] = system.DAE.y[self.v[i]]
         print(V)
         V = np.array(V)
-        V2 = V * V
+        V2 = mul(V, V)
         print(V2)
         J = [1] * system.Shunt.n
         print(self.a)
@@ -45,3 +46,6 @@ class shunt(base_device):
             system.DAE.g[key] += value
         for key, value in zip(self.v, q):
             system.DAE.g[key] += value
+    # def Gycall(self):
+    #     V=2*system.DAE.y[self.]        #shunt bus 的索引？
+    #     DAE.Gy += sparse()

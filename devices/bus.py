@@ -34,5 +34,13 @@ class bus(base_device):
 
 
 
+    def Gycall(self):
+        i=0
+        for i in range(self.n):
+            for j in range(self.n):
+                dae.Gy[i][j]=-dae.y[i+self.n]*dae.y[j+self.n](system.DAE.Y_G[i][j]*sin(dae.y[i]-dae.y[j])- system.DAE.B_G[i][j]*cos(dae.y[i]-dae.y[j]))
+                dae.Gy[i][j+self.n]=-dae.y[i+self.n]*dae.y[j+self.n](system.DAE.Y_G[i][j]*cos(dae.y[i]-dae.y[j])+ system.DAE.B_G[i][j]*sin(dae.y[i]-dae.y[j]))
+                dae.Gy[i+self.n][j]=dae.y[i+self.n]*dae.y[j+self.n](system.DAE.Y_G[i][j]*cos(dae.y[i]-dae.y[j])+ system.DAE.B_G[i][j]*sin(dae.y[i]-dae.y[j]))
+                dae.Gy[i + self.n][j+self.n]=-dae.y[i+self.n]*dae.y[j+self.n](system.DAE.Y_G[i][j]*sin(dae.y[i]-dae.y[j])- system.DAE.B_G[i][j]*cos(dae.y[i]-dae.y[j]))
 
 

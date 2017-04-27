@@ -3,7 +3,7 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix, spmatrix, cos, sin, sparse, mul
+from cvxopt.base import matrix, spmatrix, cos, sin, sparse, mul,exp
 import cvxopt.blas
 import math
 import numpy as np
@@ -76,9 +76,9 @@ class line(base_device):
         system.DAE.Y = self.Y
 
         system.DAE.Y_G = self.Y.real()
-        print(system.DAE.Y_G)
+
         system.DAE.Y_B = self.Y.imag()
-        print(system.DAE.Y_B)
+
 
 
         print(self.Y)
@@ -119,4 +119,37 @@ class line(base_device):
              system.DAE.g[i] = self.p[i]
              system.DAE.g[i+system.Bus.n] = self.q[i]
 
+
+    def Gycall(self):
+        system.DAE.y=matrix(system.DAE.y)
+        U=exp(system.DAE.y[system.Bus.a]*1j)
+        V = mul(system.DAE.y[system.Bus.v] + 0j, U)
+        I = self.Y * V
+        nb=len(system.Bus.a)
+        diagU=spmatrix(U,system.Bus.a,system.Bus.a,(nb,nb),'z')
+        diagV = spmatrix(V, system.Bus.a, system.Bus.a, (nb, nb), 'z')
+        diagI = spmatrix(I, system.Bus.a, system.Bus.a, (nb, nb), 'z')
+        dS=self.Y*diagU
+
+        dS=diagV*dS.H.T
+
+
+        dS+=diagI.H.T*diagU
+        dR=diagI
+        dR=dR-self.Y*diagV
+
+        dR=diagV.H.T*dR
+        system.DAE.Gy=sparse([[dR.imag(),dR.real()],[dS.real(),dS.imag()]])
+        # print(system.DAE.Gy)
+        system.DAE.Gy = matrix(system.DAE.Gy)
+        print('new')
+        print(system.DAE.Gy)
+
+        # print(system.DAE.Gy.V)
+
+
+        # print(dR.imag().V)
+        # print(dR.real().V)
+        # print(dS.imag().V)
+        # print(dS.real().V)
 

@@ -3,7 +3,8 @@
 """
 from devices.base_device import base_device
 import system
-
+import numpy as np
+from cvxopt.base import matrix, spmatrix, cos, sin, sparse, mul,exp
 
 class pq(base_device):
     def __init__(self):
@@ -35,17 +36,38 @@ class pq(base_device):
 
         a = []
         b = []
-        for i in range(self.n):
-            if system.DAE.y[self.v[i]] < self.Vmin[i]:
-                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] ** system.DAE.y[self.v[i]] / \
-                                                                         self.Vmin[i] / self.Vmin[i]
-                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] ** system.DAE.y[self.v[i]] / \
-                                                                         self.Vmin[i] / self.Vmin[i]
-            if system.DAE.y[self.v[i]] > self.Vmax[i]:
-                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] ** system.DAE.y[self.v[i]] / \
-                                                                         self.Vmin[i] / self.Vmin[i]
-                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] ** system.DAE.y[self.v[i]] / \
-                                                                         self.Vmin[i] / self.Vmin[i]
+        # for i in range(self.n):
+        #     if system.DAE.y[self.v[i]] < self.Vmin[i]:
+        #
+        #         system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+        #
+        #         system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+        #
+        #     if system.DAE.y[self.v[i]] > self.Vmax[i]:
+        #         print ('Vmin:')
+        #         print(self.Vmin[i])
+        #         system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 /self.Vmin[i] / self.Vmin[i]
+        #
+        #         system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+
+
+
+    def Gycall(self):
+
+        system.DAE.y = matrix(system.DAE.y)
+        U = exp(system.DAE.y[self.a] * 1j)
+        print(U)
+
+        # system.DAE.Gy = np.zeros((2*system.PQ.n,2*system.PQ.n))
+        #
+        # for i in range(system.PQ.n):
+        #     for j in range(system.PQ.n):
+        #
+        #         system.DAE.Gy[i,j] = -system.DAE.y[self.v[i]]*system.DAE.y[self.v[j]]*(system.DAE.Y_G[i,j]*sin(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]])- system.DAE.Y_B[i,j]*cos(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]]))
+        #
+        #         system.DAE.Gy[i,j+system.PQ.n] = -system.DAE.y[self.v[i]]*system.DAE.y[self.v[j]]*(system.DAE.Y_G[i,j]*cos(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]])+ system.DAE.Y_B[i,j]*sin(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]]))
+        #         system.DAE.Gy[i+system.PQ.n,j] = system.DAE.y[self.v[i]]*system.DAE.y[self.v[j]]*(system.DAE.Y_G[i,j]*cos(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]])+ system.DAE.Y_B[i,j]*sin(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]]))
+        #         system.DAE.Gy[i + system.PQ.n,j+system.PQ.n] = -system.DAE.y[self.v[i]]*system.DAE.y[self.v[j]]*(system.DAE.Y_G[i,j]*sin(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]])- system.DAE.Y_B[i,j]*cos(system.DAE.y[self.a[i]]-system.DAE.y[self.a[j]]))
 
 
 
@@ -54,20 +76,5 @@ class pq(base_device):
 
 
 
-
-    def Gycall(self,dae):
-        i = 0
-        while i < dae.n_bus:           #总共n个节点
-            if self.a != i:             #i不等于j的情况
-                dae.Gy[self.a][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))     #H[i][j] 实质是某一行的元素，在主程序调用时还需要循环一次
-                dae.Gy[self.v][i] = dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))        #J[i][j]
-                dae.Gy[self.s][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * cos(dae.y[a] - dae.y[i]) + system.DAE.Y_B[self.a][i] * sin(dae.y[a] - dae.y[i]))      #N[i][j]
-                dae.Gy[self.t][i] = - dae.y[v] * dae.y[i] * (system.DAE.Y_G[self.a][i] * sin(dae.y[a] - dae.y[i]) - system.DAE.Y_B[self.a][i] * cos(dae.y[a] - dae.y[i]))      #L[i][j]
-            else:
-                dae.Gy[self.a][self.a] = dae.y[v] * dae.y[v] * system.DAE.Y_B[self.a][self.a] + self.Ql + self.Qg   #当j不等于i时的表达式，self.Ql + self.Qg表示Qi可能有问题
-                dae.Gy[self.v][self.a] = dae.y[v] * dae.y[v]  * system.DAE.Y_G[self.a][self.a] - (self.Pl + self.Qg)
-                dae.Gy[self.s][self.a] = - dae.y[v] * dae.y[v] * system.DAE.Y_G[self.a][self.a] - (self.Pl + self.Qg)
-                dae.Gy[self.t][self.a] = dae.y[v] * dae.y[v] * system.DAE.Y_B[self.a][self.a] - (self.Ql + self.Qg)
-            i += 1
 
 
