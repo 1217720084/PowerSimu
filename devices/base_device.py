@@ -28,6 +28,7 @@ class base_device:
         self._currents = [] # 电流
         self._z = []        # 阻抗
         self._y = []        # 导纳
+        self._service = []  # 辅助变量
 
         #非零参数
         self._zeros = ['Sn', 'Vn']
@@ -194,6 +195,62 @@ class base_device:
             self.__dict__[item] = list(self.__dict__[item])
 
     # 删除某一个元件
-    def remove(self, idx = None):
-        return
+    def remove(self, idx=None):
 
+        if idx != None:
+            if idx in self.int:
+                item = self.int[idx]
+                key = idx
+            else:
+                print('The item <%s> does not exist.'% idx)
+                return None
+
+        convert = False
+
+        if isinstance(self.__dict__[self._params[0]], matrix):
+            self._matrix2list()
+            convert = True
+
+        self.n -= 1
+        self.int.pop(key, '')
+
+        for x, y in self.int.items():
+            if y > item:
+                self.int[x] = y-1
+
+        for param in self._data:
+            if len(self.__dict__[param]):
+                self.__dict__[param].pop(item)
+
+        for param in self._service:
+            if len(self.__dict__[param]) == (self.n + 1):
+                if isinstance(self.__dict__[param], list):
+                    self.__dict__[param].pop(item)
+                elif isinstance(self.__dict__[param], matrix):
+                    service = list(self.__dict__[param])
+                    service.pop(param)
+                    self.__dict__[param] = matrix(service)
+
+        for x in self._states:
+            if len(self.__dict__[x]):
+                self.__dict__[x].pop(item)
+
+        for y in self._algebs:
+            if len(self.__dict__[y]):
+                self.__dict__[y].pop(item)
+
+        for key, param in self._bus.items():
+            if isinstance(param, list):
+                for subparam in param:
+                    if len(self.__dict__[subparam]):
+                        self.__dict__[subparam].pop(item)
+            else:
+                self.__dict__[subparam].pop(item)
+
+        # for key, param in self._node.iteritems():
+        #     self.__dict__[param].pop(item)
+
+        self.name.pop(item)
+
+        if convert and self.n:
+            self._list2matrix()

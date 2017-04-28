@@ -80,7 +80,9 @@ class syn6(base_device):
         self._algebs = ['vf', 'pm', 'p', 'q']
         self._states = ['delta', 'omega', 'e1q', 'e1d', 'e2q', 'e2d']
         self._params.extend(['fn', 'xl', 'ra', 'xd', 'xd1', 'xd2', 'Td01', 'Td02',
-                             'xq', 'xq1', 'xq2', 'Tq01', 'Tq02', 'M', 'D'])
+                             'xq', 'xq1', 'xq2', 'Tq01', 'Tq02', 'M', 'D', 'u', 'ganmaP', 'ganmaQ',
+                             'Taa', 'S10', 'S12', 'pm0', 'vf0', 'J11', 'J12', 'J21', 'J22', 'Komega',
+                             'KP', 'nCOI'])
         self._voltages = ['V0']  # 后续得修改
         self._powers = ['Pg', 'M', 'xd1', 'xd', 'xd2', 'xq2', 'xq', 'xq1']    # 后续得修改
 
@@ -142,6 +144,8 @@ class syn6(base_device):
 
         # 转子速度
 
+
+
         system.DAE._list2matrix()
 
         system.DAE.x[self.omega] = self.u
@@ -158,9 +162,9 @@ class syn6(base_device):
         #                self.
         # 功率和转子角速度
 
-
-        system.DAE.y[self.p] = mul(mul(self.u, matrix(system.Bus.Pg)), matrix(self.ganmaP))
-        system.DAE.y[self.q] = mul(mul(self.u, matrix(system.Bus.Qg)), matrix(self.ganmaQ))
+        # print(mul(matrix(self.u), matrix(system.Bus.Pg[self.a])))
+        system.DAE.y[self.p] = mul(mul(self.u, matrix(system.Bus.Pg[self.a])), self.ganmaP)
+        system.DAE.y[self.q] = mul(mul(self.u, matrix(system.Bus.Qg[self.a])), self.ganmaQ)
 
         self.Pg0 = system.DAE.y[self.p]
         Vg = matrix(system.DAE.y[self.v] + 0j)
@@ -168,13 +172,17 @@ class syn6(base_device):
         V = mul(Vg, ag)
         S = system.DAE.y[self.p] - system.DAE.y[self.q] * 1j
         I = div(S, V.H.T)
+
         delta = np.angle(V + mul((self.ra + self.xq * 1j), I))
-        system.DAE.x[self.delta] = self.u * delta
+        # print(mul(matrix(self.u), matrix(delta)))
+        # a = mul(matrix(self.u), matrix(delta))
+        # print(type(system.DAE.x[0]))
+        system.DAE.x[self.delta] = mul(self.u, matrix(delta))
 
         # d、q轴电压和电流
         jpi2 = 1.5707963267948966j
-        Vdq = mul(self.u + 0j, mul(V, exp(jpi2 - delta)))
-        idq = mul(self.u + 0j, mul(I, exp(jpi2 - delta)))
+        Vdq = mul(self.u + 0j, mul(V, exp(matrix(jpi2 - delta * 1j))))
+        idq = mul(self.u + 0j, mul(I, exp(matrix(jpi2 - delta * 1j))))
 
         Vd = Vdq.real()
         Vq = Vdq.imag()
@@ -182,12 +190,13 @@ class syn6(base_device):
         Iq = idq.imag()
 
         # 机械转矩/功率
+
         self.pm0 = mul(Vq + mul(self.ra, Iq), Iq) + \
             mul(Vd + mul(self.ra, Id), Id)
         system.DAE.y[self.pm] = self.pm0
 
         # 剩余状态变量和场电压
-        K = 1 / (self.ra ** 2 + mul(self.xq2, self.xd2))
+        K = div(1, (self.ra ** 2 + mul(self.xq2, self.xd2)))
         self.c1 = mul(self.ra, K)
         self.c1 = mul(self.xd2, K)
         self.c1 = mul(self.xq2, K)
@@ -198,10 +207,18 @@ class syn6(base_device):
         K1 = div(self.xd-self.xd1-mul(mul(self.Td02, self.xd2), self.xd-self.xd1), mul(self.Td01, self.xd1))
         K2 = div(self.xd1 - self.xd2 - mul(mul(self.Td02, self.xd2), self.xd - self.xd1), mul(self.Td01, self.xd1))
         system.DAE.x[self.e1q] = system.DAE.x[self.e2q] + mul(K2, Id) - div(mul(self.Taa, mul(K1+K2, Id)+system.DAE.x[self.e2q]), self.Td01)
+
+        # print(type(system.Syn6.synsat()))
+        # print(system.Syn6.synsat())
         self.vf0 = mul(K1, Id) + div(system.Syn6.synsat(), 1-div(self.Taa, self.Td01))
-        system.DAE.x[self.vf] = self.vf0
+        print(type(self.vf))
+        system.DAE.y[self.vf] = self.vf0
 
         # !!! 移除静态发电机节点
+        system.SW.remove(idx='SW_1')
+        for i in range(system.PV.n):
+            idx = 'PV_'+str(i+1)
+            system.PV.remove(idx)
 
 
 
@@ -210,11 +227,16 @@ class syn6(base_device):
 
     def synsat(self):
 
-        b = matrix([[0.8 * np.ones((self.n, 1))],[1-self.S10],[1.2 * (1 - self.S12)]])
-        c2 = mul(b, matrix([12.5, -25, 12.5]))
-        c1 = mul(b, matrix([-27.5, 50, -22.5]))
-        c0 = mul(b, matrix([15, -24, 10]))
+        # print(type([0.8] * self.n))
+        # print(matrix(0.8, (self.n, 1)))
+        b = matrix([[matrix(0.8, (self.n, 1))], list([1.0-self.S10]), list([1.2 * (1.0 - self.S12)])])
+        # print(matrix([12.5, -25, 12.5]))
+        c2 = b * matrix([12.5, -25, 12.5])
+        c1 = b * matrix([-27.5, 50, -22.5])
+        c0 = b * matrix([15, -24, 10])
 
         for i in range(self.n):
             if system.DAE.x[self.e1q[i]] > 0.8:
                 system.DAE.x[self.e1q[i]] = mul(c2[i], system.DAE.x[self.e1q[i]] ** 2) + mul(c1[i], system.DAE.x[self.e1q[i]]) + c0[i]
+
+        return system.DAE.x[self.e1q]

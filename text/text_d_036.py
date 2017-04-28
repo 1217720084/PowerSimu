@@ -195,3 +195,30 @@ system.PV.gcall()
 system.SW.gcall()
 print(matrix(system.DAE.g))
 # print(system.DAE.y)
+
+
+# # 测试remove函数
+# print(system.PV.__dict__)
+# system.PV.remove('PV_2')
+# print(system.PV.__dict__)
+
+# 测试Syn6
+system.Syn6._bus_index()
+system.Syn6._xy_index()
+# 重新生成对应维度的x, y
+system.DAE.x = [0.0] *system.DAE.nx
+system.DAE.y = list(system.DAE.y)
+print(system.DAE.y)
+print(system.DAE.ny-system.Bus.n * 2)
+newy = [0]*(system.DAE.ny-system.Bus.n * 2)
+print(newy)
+system.DAE.y.extend(newy)
+print('ssss')
+print(system.DAE.y)
+system.DAE.y = matrix(system.DAE.y)
+
+system.Syn6._list2matrix()
+print(system.Syn6.__dict__)
+system.Syn6.setx0()
+print(system.PV.__dict__)
+

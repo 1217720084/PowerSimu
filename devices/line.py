@@ -96,8 +96,6 @@ class line(base_device):
         print(Ic)
         S = mul(Vc, Ic.H.T)
 
-
-
         print(S)
         self.p = S.real()
         print(self.p)
