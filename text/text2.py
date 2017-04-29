@@ -11,7 +11,10 @@ from cvxopt.base import spmatrix, sparse,matrix
 from cvxopt.umfpack import numeric,symbolic,solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
 from numpy import multiply
 import numpy as np
+from time import clock
 
+# 开始时间
+start = clock()
 
 system.Bus._init_data()
 system.PV._init_data()
@@ -256,6 +259,11 @@ if iteration > iter_max:
     print('Reached maximum number of iterations')
     convergence = False
 
+# 结束时间
 
+finish = clock()
+
+t = finish - start
+print('潮流计算运行时间：%f' % t)
 
 
