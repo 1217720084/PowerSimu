@@ -3,7 +3,7 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix, spmatrix, mul
+from cvxopt.base import matrix, spmatrix, mul,sparse
 from numpy import multiply
 import numpy as np
 
@@ -57,6 +57,24 @@ class shunt(base_device):
             system.DAE.g[key] += value
         for key, value in zip(self.v, q):
             system.DAE.g[key] -= value
-    # def Gycall(self):
-    #     V=2*system.DAE.y[self.]        #shunt bus 的索引？
-    #     DAE.Gy += sparse()
+    def Gycall(self):
+        system.DAE.y=matrix(system.DAE.y)
+        V=2*system.DAE.y[self.v]        #shunt bus 的索引？
+        conductance = self.g   #网络中每条母线的电导列向量
+        conductance = matrix(conductance)
+        susceptance = self.b    #电纳列向量
+        susceptance = matrix(susceptance)
+
+        m=len(system.DAE.y)        #代数变量的个数
+        conducv=mul(conductance,V)
+
+        suscepv=mul(susceptance,V)
+
+
+        spconducv = spmatrix(conducv, self.a, self.v, (m, m), 'z')
+
+        spcsuscepv = spmatrix(suscepv, self.v,self.v, (m, m), 'z')
+
+        system.DAE.Gy += spmatrix(conducv, self.a, self.v, (m, m), 'z')- spmatrix(suscepv, self.v,self.v, (m, m), 'z')
+        system.DAE.Gy = sparse(system.DAE.Gy)
+        system.DAE.Gy = matrix(system.DAE.Gy.real())

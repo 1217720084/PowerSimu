@@ -8,8 +8,10 @@
 
 import system
 from cvxopt.base import spmatrix, sparse,matrix
+from cvxopt.umfpack import numeric,symbolic,solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
 from numpy import multiply
 import numpy as np
+
 
 system.Bus._init_data()
 system.PV._init_data()
@@ -110,13 +112,10 @@ case.close()
 
 # Bus
 system.Bus._xy_index()
-print(system.Bus.__dict__)
 system.Bus._bus_index()
 system.Bus._list2matrix()
 system.Bus.yinit(system.DAE)
-print('Bus:')
-print(system.Bus.__dict__)
-print(system.DAE.__dict__)
+
 
 # PV
 system.PV._bus_index()
@@ -124,9 +123,7 @@ system.PV._list2matrix()
 system.PV.base(Vb=system.Bus.Vb[system.PV.a])
 system.PV.yinit(system.DAE)
 system.PV._matrix2list()
-print('PV:')
-print(system.PV.__dict__)
-print(system.DAE.__dict__)
+
 
 # PQ
 system.PQ._bus_index()
@@ -134,35 +131,22 @@ system.PQ._list2matrix()
 system.PQ.base(Vb=system.Bus.Vb[system.PQ.a])
 system.PQ.yinit(system.DAE)
 system.PQ._matrix2list()
-print('PQ:')
-print(system.PQ.__dict__)
-print(system.DAE.__dict__)
+
 
 # SW
 system.SW._bus_index()
-# system.SW._list2matrix()
-# system.SW.base(Vb=system.Bus.Vb[system.SW.a])
 system.SW.yinit(system.DAE)
-print('SW:')
-print(system.SW.__dict__)
-print(system.DAE.__dict__)
+
 
 # Shunt
 system.Shunt._bus_index()
-# system.Shunt._list2matrix()
-# system.Shunt.base(Vb=system.Bus.Vb[system.Shunt.a])
-# system.Shunt.yinit(system.DAE)
-# system.Shunt._matrix2list()
-print('Shunt:')
-print(system.Shunt.__dict__)
-print(system.DAE.__dict__)
 
 
 # Line
 system.Line._bus_index()
-print('Line:')
-print(system.Line.__dict__)
+
 system.Line.build_y()
+
 #system.DAE.Y = sparse(system.DAE.Y)
 #print(system.DAE.Y)
 system.Line.gcall()
@@ -173,14 +157,63 @@ system.SW.gcall()
 print(system.DAE.g)
 print(system.DAE.y)
 
-system.Line.Gycall()
+
+
+
+# def calcInc():
+#     system.Line.gcall()
+#     system.PQ.gcall()
+#     system.Shunt.gcall()
+#     system.PV.gcall()
+#     system.SW.gcall()
+#     system.Line.Gycall()
+#     system.Shunt.Gycall()
+#     system.PV.Gycall()
+#     system.SW.Gycall()
+#
+#
+#
+#     system.DAE.g = np.array(system.DAE.g)
+#
+#     y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
+#     y=matrix(y)
+#     return y
+
+
+#
 
 def calcInc():
+    global F
     system.Line.gcall()
     system.PQ.gcall()
     system.Shunt.gcall()
     system.PV.gcall()
+    system.SW.gcall()
     system.Line.Gycall()
+    system.Shunt.Gycall()
+    system.PV.Gycall()
+    system.SW.Gycall()
+    A=sparse(system.DAE.Gy)
+    inc=matrix(system.DAE.g)
+    if system.DAE.factorize:
+        F=symbolic(A)     #重新排列A矩阵以减少填充并执行LU分解，返回为可以传递的不透明 C object到umfpack.numeric（）。
+        system.DAE.factorize = False
+    try:
+        N = numeric(A,F)
+        solve(A,N,inc)
+    except:
+        print('unexpec')
+        F=symbolic(A)
+        solve(A,numeric(A,F),inc)
+
+    return inc
+
+#
+
+
+
+
+
 
     print(system.DAE.Gy)
     print(system.DAE.g)
@@ -193,49 +226,31 @@ def calcInc():
 # system.Shunt.gcall()
 # system.PV.gcall()
 system.DAE.g = np.array(system.DAE.g)
+
 iteration = 1
 iter_max = system.Settings.iter
 convergence = True  # 收敛
 tol = system.Settings.error
+cycle = True
 
-print(system.DAE.y)
-system.DAE.y=matrix(system.DAE.y)
 
-print(system.DAE.y)
 
-print(system.DAE.y[system.Bus.a])
-print(max(abs(system.DAE.g)))
 
-inc = calcInc()
-inc = matrix(inc)
-system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
-system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
-
-system.Line.gcall()
-system.PQ.gcall()
-system.Shunt.gcall()
-system.PV.gcall()
-system.DAE.g = np.array(system.DAE.g)
-print('new')
-print(max(abs(system.DAE.g)) > tol)
-print('new')
-    # main loop
-while max(abs(system.DAE.g)) > tol and iteration <= iter_max:
+    #main loop
+while cycle or (max(abs(system.DAE.g)) > tol and iteration <= iter_max):
 
     inc = calcInc()
-    inc = matrix(inc)
-    system.DAE.y[system.Bus.a] -= inc[system.Bus.a]
-    system.DAE.y[system.Bus.v] -= multiply(system.DAE.y[system.Bus.v], inc[system.Bus.v])
+    cycle = False
+    system.DAE.y-= inc
     iteration += 1
-    system.Line.gcall()
-    system.PQ.gcall()
-    system.Shunt.gcall()
-    system.PV.gcall()
+
     system.DAE.g = np.array(system.DAE.g)
+
     # stop if the error increases too much
 if iteration > iter_max:
     print ('Reached maximum number of iterations')
     convergence = False
-
+print(iteration-1)
+print(system.DAE.y)
 
 

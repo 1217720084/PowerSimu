@@ -126,16 +126,8 @@ class line(base_device):
 
         dR=diagV.H.T*dR
         system.DAE.Gy=sparse([[dR.imag(),dR.real()],[dS.real(),dS.imag()]])
-        # print(system.DAE.Gy)
+
         system.DAE.Gy = matrix(system.DAE.Gy)
-        print('new')
-        print(system.DAE.Gy)
-
-        # print(system.DAE.Gy.V)
 
 
-        # print(dR.imag().V)
-        # print(dR.real().V)
-        # print(dS.imag().V)
-        # print(dS.real().V)
 

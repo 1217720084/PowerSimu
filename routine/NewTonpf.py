@@ -1,14 +1,13 @@
 import system
 import numpy as np    #用于底下的linalg函数
 
-def calcInc():
-    system.Line.gcall()
-    system.PQ.gcall()
-    system.Shunt.gcall()
-    system.PV.gcall()
-    system.Line.Gycall()
-     y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
-     return y                           #假定他存在一个类似于dae.y的结构里，不过这样表达应该不对
+from cvxopt.base import spmatrix, sparse,matrix
+from cvxopt.umfpack import numeric,symbolic,solve
+from numpy import multiply
+
+
+
+
 def powerflow():
     """main power flow routine"""
     # general settings

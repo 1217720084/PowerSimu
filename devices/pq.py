@@ -52,11 +52,14 @@ class pq(base_device):
 
 
 
-    def Gycall(self):
-
-        system.DAE.y = matrix(system.DAE.y)
-        U = exp(system.DAE.y[self.a] * 1j)
-        print(U)
+    # def Gycall(self):
+    #
+    #
+    #
+    #
+    #     system.DAE.y = matrix(system.DAE.y)
+    #     U = exp(system.DAE.y[self.a] * 1j)
+    #     print(U)
 
         # system.DAE.Gy = np.zeros((2*system.PQ.n,2*system.PQ.n))
         #

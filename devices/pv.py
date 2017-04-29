@@ -81,6 +81,15 @@ class pv(base_device):
 
         for i in range(system.PV.n):
             system.DAE.g[self.v[i]] -= self.qg[i]
+    def Gycall(self):
+
+        for i in self.v:
+            system.DAE.Gy[i, :] = 0
+            system.DAE.Gy[:, i] = 0
+            system.DAE.Gy[i, i] = 1
+
+
+
 
 
 class slack(base_device):
@@ -158,3 +167,12 @@ class slack(base_device):
 
         for i in range(system.SW.n):
             system.DAE.g[self.v[i]] -= self.qg[i]
+
+    def Gycall(self):
+        system.DAE.Gy[self.a,:] = 0
+        system.DAE.Gy[:, self.a] = 0
+        system.DAE.Gy[self.v,:] = 0
+        system.DAE.Gy[:, self.v] = 0
+
+        system.DAE.Gy[self.a,self.a] = 1
+        system.DAE.Gy[self.v,self.v] = 1
