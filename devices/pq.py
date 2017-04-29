@@ -36,19 +36,20 @@ class pq(base_device):
 
         a = []
         b = []
-        # for i in range(self.n):
-        #     if system.DAE.y[self.v[i]] < self.Vmin[i]:
-        #
-        #         system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
-        #
-        #         system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
-        #
-        #     if system.DAE.y[self.v[i]] > self.Vmax[i]:
-        #         print ('Vmin:')
-        #         print(self.Vmin[i])
-        #         system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 /self.Vmin[i] / self.Vmin[i]
-        #
-        #         system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+        for i in range(self.n):
+            if system.DAE.y[self.v[i]] < self.Vmin[i]:
+
+                print('pq达到vmin')
+                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+
+                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
+
+            if system.DAE.y[self.v[i]] > self.Vmax[i]:
+
+                print('pq达到vmax')
+                system.DAE.g[self.a[i]] = system.DAE.g[i] - self.Pl[i] + self.Pl[i] * system.DAE.y[self.v[i]]**2 /self.Vmin[i] / self.Vmin[i]
+
+                system.DAE.g[self.v[i]] = system.DAE.g[i] - self.Ql[i] + self.Ql[i] * system.DAE.y[self.v[i]]**2 / self.Vmin[i] / self.Vmin[i]
 
 
 

@@ -193,18 +193,18 @@ def calcInc():
     system.Shunt.Gycall()
     system.PV.Gycall()
     system.SW.Gycall()
-    A=sparse(system.DAE.Gy)
-    inc=matrix(system.DAE.g)
+    A = sparse(system.DAE.Gy)
+    inc = matrix(system.DAE.g)
     if system.DAE.factorize:
-        F=symbolic(A)     #重新排列A矩阵以减少填充并执行LU分解，返回为可以传递的不透明 C object到umfpack.numeric（）。
+        F = symbolic(A)     #重新排列A矩阵以减少填充并执行LU分解，返回为可以传递的不透明 C object到umfpack.numeric（）。
         system.DAE.factorize = False
     try:
-        N = numeric(A,F)
-        solve(A,N,inc)
+        N = numeric(A, F)
+        solve(A, N, inc)
     except:
-        print('unexpec')
-        F=symbolic(A)
-        solve(A,numeric(A,F),inc)
+        print('unexpect')
+        F = symbolic(A)
+        solve(A, numeric(A, F), inc)
 
     return inc
 
@@ -232,6 +232,7 @@ iter_max = system.Settings.iter
 convergence = True  # 收敛
 tol = system.Settings.error
 cycle = True
+err = []
 
 
 
@@ -241,16 +242,20 @@ while cycle or (max(abs(system.DAE.g)) > tol and iteration <= iter_max):
 
     inc = calcInc()
     cycle = False
-    system.DAE.y-= inc
+    system.DAE.y -= inc
+    err.append(max(abs(system.DAE.g)))
+    print('第%i次迭代最大误差为：<%f>' % (iteration, err[iteration-1]))
+    print(system.DAE.y)
     iteration += 1
+
 
     system.DAE.g = np.array(system.DAE.g)
 
     # stop if the error increases too much
 if iteration > iter_max:
-    print ('Reached maximum number of iterations')
+    print('Reached maximum number of iterations')
     convergence = False
-print(iteration-1)
-print(system.DAE.y)
+
+
 
 

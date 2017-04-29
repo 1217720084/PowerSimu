@@ -16,6 +16,8 @@ system.SW._init_data()
 system.Shunt._init_data()
 system.Line._init_data()
 system.Syn6._init_data()
+system.Avr1._init_data()
+system.Avr2._init_data()
 
 case = open('text_d_036.txt')
 for each_line in case:
@@ -130,6 +132,42 @@ for each_line in case:
                      'xq': xq, 'xq1': xq1, 'xq2': xq2, 'Tq01': Tq01, 'Tq02': Tq02, 'M': M, 'D': D}
         system.Syn6.add(**Syn6_case)
 
+    if data[0] == 'Avr2':
+        bus = 'Bus_' + str(data[1])
+        Type = float(data[2])
+        vrmax = float(data[3])
+        vrmin = float(data[4])
+        Ka = float(data[5])
+        Ta = float(data[6])
+        Kf = float(data[7])
+        Tf = float(data[8])
+        Ke = float(data[9])
+        Te = float(data[10])
+        Tr = float(data[11])
+        Ae = float(data[12])
+        Be = float(data[13])
+        Avr2_case = {'bus': bus, 'Type': Type, 'vrmax': vrmax, 'vrmin': vrmin, 'Ka': Ka, 'Ta': Ta, 'Kf': Kf, 'Tf': Tf,
+                     'Ke': Ke, 'Te': Te, 'Tr': Tr, 'Ae': Ae, 'Be': Be}
+        system.Avr2.add(**Avr2_case)
+
+    if data[0] == 'Avr1':
+        bus = 'Bus_' + str(data[1])
+        Type = float(data[2])
+        vrmax = float(data[3])
+        vrmin = float(data[4])
+        K0 = float(data[5])
+        T1 = float(data[6])
+        T2 = float(data[7])
+        T3 = float(data[8])
+        T4 = float(data[9])
+        Te = float(data[10])
+        Tr = float(data[11])
+        Ae = float(data[12])
+        Be = float(data[13])
+        Avr1_case = {'bus': bus, 'Type': Type, 'vrmax': vrmax, 'vrmin': vrmin, 'K0': K0, 'T1': T1, 'T2': T2, 'T3': T3,
+                     'T4': T4, 'Te': Te, 'Tr': Tr, 'Ae': Ae, 'Be': Be}
+        system.Avr1.add(**Avr1_case)
+
 case.close()
 
 # Bus
@@ -205,9 +243,17 @@ print(matrix(system.DAE.g))
 # 测试Syn6
 system.Syn6._bus_index()
 system.Syn6._xy_index()
+
+# 测试Avr
+system.Avr1._bus_index()
+system.Avr2._bus_index()
+system.Avr1._xy_index()
+system.Avr2._xy_index()
+
 # 重新生成对应维度的x, y
 system.DAE.x = [0.0] *system.DAE.nx
 system.DAE.y = list(system.DAE.y)
+
 print(system.DAE.y)
 print(system.DAE.ny-system.Bus.n * 2)
 newy = [0]*(system.DAE.ny-system.Bus.n * 2)
@@ -217,8 +263,22 @@ print('ssss')
 print(system.DAE.y)
 system.DAE.y = matrix(system.DAE.y)
 
+# 测试Syn6 setx0
 system.Syn6._list2matrix()
 print(system.Syn6.__dict__)
 system.Syn6.setx0()
 print(system.PV.__dict__)
+
+# 测试Avr setx0
+
+print(system.Avr1.__dict__)
+print(system.Avr2.__dict__)
+system.Avr1._list2matrix()
+system.Avr2._list2matrix()
+system.Avr1.setx0()
+system.Avr2.setx0()
+print(system.Avr1.__dict__)
+print(system.Avr2.__dict__)
+
+
 

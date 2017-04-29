@@ -26,11 +26,8 @@ class shunt(base_device):
         system.DAE.y = matrix(system.DAE.y)
         V = system.DAE.y[self.v]
         V2 = mul(V, V)
-        print(V2)
         p = mul(matrix(self.g), V2)
-        print(p)
         q = mul(matrix(self.b), V2)
-        print(q)
 
 
 

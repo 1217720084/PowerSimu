@@ -90,17 +90,13 @@ class line(base_device):
         system.DAE.y = matrix(system.DAE.y)
         Vn = exp(system.DAE.y[system.Bus.a] * 1j)
         Vc = mul(system.DAE.y[system.Bus.v] + 0j, Vn)
-        print(Vc)
-        print(Vc.H.T)
         Ic = self.Y * Vc
-        print(Ic)
         S = mul(Vc, Ic.H.T)
 
-        print(S)
         self.p = S.real()
-        print(self.p)
+
         self.q = S.imag()
-        print(self.q)
+
         for i in range(system.Bus.n):
              system.DAE.g[i] = self.p[i]
              system.DAE.g[i+system.Bus.n] = self.q[i]
