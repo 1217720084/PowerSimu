@@ -40,7 +40,7 @@ class line(base_device):
         for i in range(len(self.tap_ratio)):
             if self.tap_ratio[i] == 0:
                 self.tap_ratio[i] = 1
-        print(self.tap_ratio)
+        # print(self.tap_ratio)
 
         # chrg = np.mat(self.b) * 0.5
         # chrg = chrg.T
@@ -48,14 +48,14 @@ class line(base_device):
         # print(chrg)
         chrg = np.array(np.zeros((len(self.b), 1), complex))
         for i in range(len(self.x)):
-            chrg[i] = complex(0, self.b[i] * 0.5)
+            chrg[i] = complex(0.0, self.b[i] * 0.5)
 
         #print(chrg)
         #zeros = [0] * len(self.x)
         #y = matrix(zeros, (len(self.x), 1, complex))
         y = np.array(np.zeros((len(self.x), 1), complex))
         for i in range(len(self.x)):
-            y[i] = 1 / complex(self.r[i], self.x[i])
+            y[i] = 1.0 / complex(self.r[i], self.x[i])
         #print(y)
 
         ts = np.array(np.zeros((len(self.theta), 1), complex))

@@ -20,10 +20,12 @@ class avr1(base_device):
         self._params.extend(['u', 'vrmax', 'vrmin', 'K0', 'T1', 'T2', 'T3', 'T4', 'Te', 'Tr', 'Ae', 'Be'])
         self._voltages = ['V0']  # 后续得修改
         self._powers = ['Pg']  # 后续得修改
+        self.ba = []
+        self.bv = []
 
     def setx0(self):
 
-        vg = system.DAE.y[self.v]
+        vg = system.DAE.y[self.bv]
         vf = mul(self.u, system.Syn6.vf0[self.a])
         vrmax = mul(self.u, self.vrmax)
         vrmin = mul(self.u, self.vrmin)
@@ -67,9 +69,13 @@ class avr1(base_device):
         for i in range(self.n):
             if vr[i] > self.vrmax[i]:
                 print('Warn: vr1超出最大值vrmax')
-            if vr[i] < self.vrmax[i]:
+            if vr[i] < self.vrmin[i]:
                 print('Warn: vr1小于最小值vrmin')
 
+    def getbus(self):
+        for i in range(self.n):
+            self.ba.append(system.Syn6.a[self.a[i]])
+            self.bv.append(system.Syn6.v[self.a[i]])
 
 
 class avr2(base_device):
@@ -87,10 +93,13 @@ class avr2(base_device):
         self._params.extend(['u', 'vrmax', 'vrmin', 'Ka', 'Ta', 'Kf', 'Tf', 'Ke', 'Te', 'Tr', 'Ae', 'Be'])
         self._voltages = ['V0']  # 后续得修改
         self._powers = ['Pg']  # 后续得修改
+        self.ba = []
+        self.bv = []
+
 
     def setx0(self):
 
-        vg = system.DAE.y[self.v]
+        vg = system.DAE.y[self.bv]
         vf = mul(self.u, system.Syn6.vf0[self.a])
         vrmax = mul(self.u, self.vrmax)
         vrmin = mul(self.u, self.vrmin)
@@ -130,8 +139,12 @@ class avr2(base_device):
         for i in range(self.n):
             if Ce[i] > self.vrmax[i]:
                 print('Warn: vr2超出最大值vrmax')
-            if Ce[i] < self.vrmax[i]:
+            if Ce[i] < self.vrmin[i]:
                 print('Warn: vr2小于最小值vrmin')
+    def getbus(self):
+        for i in range(self.n):
+            self.ba.append(system.Syn6.a[self.a[i]])
+            self.bv.append(system.Syn6.v[self.a[i]])
 
 class avr3():
     def __init__(self):

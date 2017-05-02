@@ -83,10 +83,11 @@ class syn6(base_device):
                              'xq', 'xq1', 'xq2', 'Tq01', 'Tq02', 'M', 'D', 'u', 'ganmaP', 'ganmaQ',
                              'Taa', 'S10', 'S12', 'pm0', 'vf0', 'J11', 'J12', 'J21', 'J22', 'Komega',
                              'KP', 'nCOI'])
-        self._voltages = ['V0']  # 后续得修改
-        self._powers = ['Pg', 'M', 'xd1', 'xd', 'xd2', 'xq2', 'xq', 'xq1']    # 后续得修改
+        self._z = ['xl', 'ra', 'xd', 'xd1', 'xd2', 'xq', 'xq1', 'xq2']
+        self._powers = ['M', 'D']    # 后续得修改
 
     def setx0(self):
+
 
         # 常数
         self.c1 = [0] * self.n
@@ -203,15 +204,14 @@ class syn6(base_device):
 
         system.DAE.x[self.e2q] = Vq +mul(self.ra, Iq) + mul(self.xd2, Id)
         system.DAE.x[self.e2d] = Vd + mul(self.ra, Id) - mul(self.xq2, Iq)
-        system.DAE.x[self.e1d] = div(mul(self.xq-self.xq1-mul(mul(self.Tq02, self.xq2), self.xq-self.xq1), Iq), mul(self.Tq01, self.xq1))
-        K1 = div(self.xd-self.xd1-mul(mul(self.Td02, self.xd2), self.xd-self.xd1), mul(self.Td01, self.xd1))
-        K2 = div(self.xd1 - self.xd2 - mul(mul(self.Td02, self.xd2), self.xd - self.xd1), mul(self.Td01, self.xd1))
+        system.DAE.x[self.e1d] = div(mul(mul(mul(self.xq-self.xq1-self.Tq02, self.xq2), self.xq-self.xq1), Iq), mul(self.Tq01, self.xq1))
+        K1 = self.xd-self.xd1-div((mul(mul(self.Td02, self.xd2), (self.xd-self.xd1))), mul(self.Td01, self.xd1))
+        K2 = self.xd1 - self.xd2 + div(mul(mul(self.Td02, self.xd2), self.xd - self.xd1), mul(self.Td01, self.xd1))
         system.DAE.x[self.e1q] = system.DAE.x[self.e2q] + mul(K2, Id) - div(mul(self.Taa, mul(K1+K2, Id)+system.DAE.x[self.e2q]), self.Td01)
 
         # print(type(system.Syn6.synsat()))
         # print(system.Syn6.synsat())
         self.vf0 = mul(K1, Id) + div(system.Syn6.synsat(), 1-div(self.Taa, self.Td01))
-        print(type(self.vf))
         system.DAE.y[self.vf] = self.vf0
 
         # !!! 移除静态发电机节点
@@ -219,7 +219,6 @@ class syn6(base_device):
         for i in range(system.PV.n):
             idx = 'PV_'+str(i+1)
             system.PV.remove(idx)
-
 
 
 

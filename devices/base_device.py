@@ -77,7 +77,7 @@ class base_device:
 
         for var in self._powers:
             self.__dict__[var] = mul(self.__dict__[var], self.Sn)
-            self.__dict__[var] = div(self.__dict__[var],Sb)
+            self.__dict__[var] = div(self.__dict__[var], Sb)
 
         for var in self._currents:
             self.__dict__[var] = mul(self.__dict__[var], self.Sn)
@@ -88,7 +88,7 @@ class base_device:
         if len(self._z) or len(self._y):
             Zn = div(self.Vn**2, self.Sn)
             #print(Zn)
-            Zb = div(Vb**2, Sb)
+            Zb = div(mul(Vb, Vb), Sb)
             #print(Zb)
 
             for var in self._z:

@@ -6,6 +6,7 @@ from cvxopt.base import matrix
 class dae():
     def __init__(self):
         self.g = []          # 代数方程
+        self.f = []          # 微分方程
         self.y = []          # 代数变量
         self.x = []          # 状态变量
         self.Y = matrix()          # 导纳矩阵
@@ -20,7 +21,7 @@ class dae():
         self._params = ['g', 'x', 'y', 'Y', 'Y_G', 'Y_B', 'Gy']
 
         self.factorize = True  # 如果是True，则对雅可比矩阵进行因式分解
-        self._params = ['g', 'y', 'Y', 'Y_G', 'Y_B', 'Gy']
+        self._params = ['g', 'x', 'y', 'Y', 'Y_G', 'Y_B', 'Gy']
 
 
     def _list2matrix(self):
