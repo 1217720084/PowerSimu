@@ -8,3 +8,4 @@ class settings():
         self.pv2pqiter = 0  # 经过多少次迭代后PV才能转为PQ
         self.error = 1e-6   # 默认误差
         self.multipvswitch = 0  # 允许多台发电机转为PQ负荷
+        self.freq = 50          # 频率

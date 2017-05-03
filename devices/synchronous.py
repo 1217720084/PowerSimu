@@ -3,7 +3,7 @@
 """
 import system
 from devices.base_device import base_device
-from cvxopt.base import mul, matrix, exp, div
+from cvxopt.base import mul, matrix, exp, div, sin, cos, spmatrix
 import numpy as np
 
 class syn2():
@@ -199,8 +199,8 @@ class syn6(base_device):
         # 剩余状态变量和场电压
         K = div(1, (self.ra ** 2 + mul(self.xq2, self.xd2)))
         self.c1 = mul(self.ra, K)
-        self.c1 = mul(self.xd2, K)
-        self.c1 = mul(self.xq2, K)
+        self.c2 = mul(self.xd2, K)
+        self.c3 = mul(self.xq2, K)
 
         system.DAE.x[self.e2q] = Vq +mul(self.ra, Iq) + mul(self.xd2, Id)
         system.DAE.x[self.e2d] = Vd + mul(self.ra, Id) - mul(self.xq2, Iq)
@@ -239,3 +239,105 @@ class syn6(base_device):
                 system.DAE.x[self.e1q[i]] = mul(c2[i], system.DAE.x[self.e1q[i]] ** 2) + mul(c1[i], system.DAE.x[self.e1q[i]]) + c0[i]
 
         return system.DAE.x[self.e1q]
+
+    def gcall(self):
+        system.DAE._list2matrix()
+        delta = system.DAE.x[self.delta]
+        omega = system.DAE.x[self.omega]
+        e1q = system.DAE.x[self.e1q]
+        e1d = system.DAE.x[self.e1d]
+        e2q = system.DAE.x[self.e2q]
+        e2d = system.DAE.x[self.e2d]
+
+        ag = system.DAE.y[self.a]
+        vg = mul(self.u, system.DAE.y[self.v])
+        ss = sin(delta - ag)
+        cc = cos(delta - ag)
+
+        self.Id = mul(-vg, (mul(self.c1, ss)+mul(self.c3, cc)))
+        self.Iq = mul(-vg, (mul(self.c2, ss) - mul(self.c1, cc)))
+
+        self.Id = self.Id + mul(self.c1, e2d) + mul(self.c3, e2q)
+        self.Iq = self.Iq - mul(self.c2, e2d) + mul(self.c1, e2q)
+
+        ones = [0] * self.n
+        system.DAE.g = system.DAE.g -\
+                       spmatrix(system.DAE.y[self.p], self.a, ones, (system.DAE.ny, 1))- \
+                       spmatrix(system.DAE.y[self.q], self.v, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(vg, (mul(self.Id, ss)+mul(self.Iq, cc))), self.p, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(vg, (mul(self.Id, cc) - mul(self.Iq, ss))), self.q, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(self.u, (self.pm0 - system.DAE.y[self.pm])), self.pm, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(self.u, (self.vf0 - system.DAE.y[self.vf])), self.vf, ones, (system.DAE.ny, 1))
+
+    def gycall(self):
+
+        system.DAE._list2matrix()
+        delta = system.DAE.x[self.delta]
+        ag = system.DAE.y[self.a]
+        vg = mul(self.u, system.DAE.y[self.v])
+        ss = sin(delta - ag)
+        cc = cos(delta - ag)
+
+        M1 = mul(vg, (mul(self.c1, cc)-mul(self.c3, ss)))
+        M2 = mul(-vg, (mul(self.c2, cc) + mul(self.c1, ss)))
+        M3 = -(mul(self.c1, ss)+mul(self.c3, cc))
+        M4 = (mul(self.c2, ss)-mul(self.c1, cc))
+
+        self.J11 = mul(vg, (mul(self.Id - M2, cc)-mul(mul(M1+self.Iq, ss))))
+        self.J12 = mul(-self.Id, ss)-mul(self.Iq, cc)-mul(vg, (mul(M3, ss)+mul(M4, cc)))
+        self.J21 = mul(vg, mul(M2-self.Id, ss)-mul(M1+self.Iq, cc))
+        self.J22 = mul(-self.Id, cc) + mul(self.Iq, ss) - mul(vg, mul(M3, cc)-mul(M4, ss))
+
+        system.DAE.Gy = system.DAE.Gy -spmatrix(self.u, self.a, self.p, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix(self.u, self.v, self.q, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix([1]*self.n, self.p, self.p, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix([1] * self.n, self.q, self.q, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix(self.J11, self.p, self.a, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix(self.J12, self.p, self.v, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix(self.J21, self.q, self.a, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix(self.J22, self.q, self.v, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix([1] * self.n, self.pm, self.pm, (system.DAE.ny, system.DAE.ny)) \
+                        - spmatrix([1] * self.n, self.vf, self.vf, (system.DAE.ny, system.DAE.ny)) \
+
+    def fcall(self):
+
+        rad = 2 * 3.1415926 * system.Settings.freq
+        delta = system.DAE.x[self.delta]
+        omega = system.DAE.x[self.omega]
+        ag = system.DAE.y[self.a]
+        vg = mul(self.u, system.DAE.y[self.v])
+        ss = sin(delta - ag)
+        cc = cos(delta - ag)
+
+        e1q = system.DAE.x[self.e1q]
+        e1d = system.DAE.x[self.e1d]
+        e2q = system.DAE.x[self.e2q]
+        e2d = system.DAE.x[self.e2d]
+        iM = div(self.u, self.M)
+
+        # 更新Vf 和Pm
+        Vf = system.DAE.y[self.vf] + mul(self.Komega, omega-[1]*self.n) - mul(self.KP, system.DAE.y[self.p]-self.Pg0)
+        system.DAE.f[self.delta] = mul(rad, mul(self.u, omega - [1]*self.n))
+        system.DAE.f[self.omega] = mul(system.DAE.y[self.pm]-system.DAE.y[self.p]-mul(self.ra, mul(self.Id, self.Id)+mul(self.Iq, self.Iq))-mul(self.D, omega-1), iM)
+
+        gd = div(mul(mul(self.xd2, self.Td02), self.xd-self.xd1), mul(self.xd1, self.Td01))
+        gq = div(mul(mul(self.xq2, self.Td02), self.xq - self.xq1), mul(self.xq1, self.Td01))
+        a1 = div(self.u, self.Td02)
+        a2 = mul(a1, self.xd1-self.xd2+gd)
+        a3 = div(mul(self.u, self.Taa), mul(self.Td01, self.Td02))
+        a4 = div(self.u, self.Td01)
+        a5 = mul(a4, self.xd-self.xd1-gd)
+        a6 = mul(a4, 1-div(self.Taa, self.Td01))
+        b1 = div(self.u, self.Tq02)
+        b2 = mul(b1, self.xq1-self.xq2+gq)
+        b3 = div(self.u, self.Tq01)
+        b4 = mul(b3, self.xq-self.xq1-gq)
+
+        system.DAE.f[self.e1q] = mul(-a4, self.synsat()) - mul(a5, self.Id) + mul(a6, Vf)
+        system.DAE.f[self.e1d] = mul(-b3, e1d) + mul(b4, self.Iq)
+        system.DAE.f[self.e2q] = mul(-a1, e2q) + mul(a2, e1q) - mul(a2, self.Id) + mul(a3, Vf)
+        system.DAE.f[self.e2d] = mul(-b1, e2d) + mul(b1, e1d) + mul(b2, self.Iq)
+
+    def fxcall(self):
+        return
+

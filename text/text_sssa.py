@@ -381,11 +381,9 @@ system.DAE.y = matrix(system.DAE.y)
 system.Syn6._list2matrix()
 system.Syn6.base(Vb=system.Bus.Vb[system.Syn6.a])
 system.Syn6.setx0()
-print(system.DAE.x)
+# print(system.DAE.x)
 # 测试Avr setx0
 
-print(system.Avr1.__dict__)
-print(system.Avr2.__dict__)
 system.Avr1._list2matrix()
 system.Avr2._list2matrix()
 # system.Avr1.base(Vb=system.Bus.Vb[system.Avr1.a])
@@ -394,6 +392,13 @@ system.Avr1.setx0()
 system.Avr2.setx0()
 system.Avr1._matrix2list()
 system.Avr2._matrix2list()
-print(system.Avr1.__dict__)
-print(system.Avr2.__dict__)
-print(system.DAE.y)
+
+# text Syn6.gcall
+# system.Syn6._matrix2list()
+
+print(system.Syn6.__dict__)
+print(system.DAE.ny)
+system.Syn6.gcall()
+print(system.DAE.g)
+system.Syn6.gycall()
+
