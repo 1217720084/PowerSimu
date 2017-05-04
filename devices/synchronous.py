@@ -234,11 +234,13 @@ class syn6(base_device):
         c1 = b * matrix([-27.5, 50, -22.5])
         c0 = b * matrix([15, -24, 10])
 
+        output = system.DAE.x[self.e1q]
+
         for i in range(self.n):
             if system.DAE.x[self.e1q[i]] > 0.8:
-                system.DAE.x[self.e1q[i]] = mul(c2[i], system.DAE.x[self.e1q[i]] ** 2) + mul(c1[i], system.DAE.x[self.e1q[i]]) + c0[i]
+                output[i] = mul(c2[i], system.DAE.x[self.e1q[i]] ** 2) + mul(c1[i], system.DAE.x[self.e1q[i]]) + c0[i]
 
-        return system.DAE.x[self.e1q]
+        return output
 
     def gcall(self):
         system.DAE._list2matrix()
@@ -339,5 +341,118 @@ class syn6(base_device):
         system.DAE.f[self.e2d] = mul(-b1, e2d) + mul(b1, e1d) + mul(b2, self.Iq)
 
     def fxcall(self):
-        return
+
+        delta = system.DAE.x[self.delta]
+        omega = system.DAE.x[self.omega]
+        ag = system.DAE.y[self.a]
+        vg = mul(self.u, system.DAE.y[self.v])
+        ss = sin(delta - ag)
+        cc = cos(delta - ag)
+
+        e1q = system.DAE.x[self.e1q]
+        e1d = system.DAE.x[self.e1d]
+        e2q = system.DAE.x[self.e2q]
+        e2d = system.DAE.x[self.e2d]
+
+        iM = div(self.u, self.M)
+
+        M1 = mul(vg, (mul(self.c1, cc) - mul(self.c3, ss)))
+        M2 = mul(-vg, (mul(self.c2, cc) + mul(self.c1, ss)))
+        M3 = -(mul(self.c1, ss) + mul(self.c3, cc))
+        M4 = (mul(self.c2, ss) - mul(self.c1, cc))
+
+        rad = 2 * 3.1415926 * system.Settings.freq
+        Wn = self.u * rad  # print(Wn)
+
+        system.DAE.Fx = system.DAE.Fx - spmatrix(~self.u, self.delta, self.delta, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(Wn, self.delta, self.omega, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(iM, self.D)+(~self.u), self.omega, self.omega, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(mul(2*self.ra, mul(self.Id, M1)+mul(self.Iq, M2)), iM), self.omega, self.delta, (system.DAE.nx, system.DAE.nx))
+        system.DAE.Fy = system.DAE.Fy \
+                        - spmatrix(mul(mul(2 * self.ra, mul(self.Id, M1) + mul(self.Iq, M2)), iM), self.omega, self.a, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(mul(2 * self.ra, mul(self.Id, M3) + mul(self.Iq, M4)), iM), self.omega, self.v, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(iM, self.omega, self.p, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(iM, self.omega, self.pm, (system.DAE.nx, system.DAE.ny))
+        system.DAE.Gx = system.DAE.Gx + spmatrix(self.J11, self.p, self.delta,(system.DAE.ny, system.DAE.nx)) \
+                        + spmatrix(self.J21, self.q, self.delta, (system.DAE.ny, system.DAE.nx))
+
+        Gp1 = mul(vg, (mul(self.c3, ss) + mul(self.c1, cc)))
+        Gp2 = mul(vg, (mul(self.c1, ss) - mul(self.c2, cc)))
+        Gq1 = mul(vg, (mul(self.c3, cc) - mul(self.c1, ss)))
+        Gq2 = mul(vg, (mul(self.c1, cc) + mul(self.c2, ss)))
+
+        N1 = mul(mul(-2 * self.ra, mul(self.Id, self.c3) + mul(self.Iq, self.c1)), iM)
+        N2 = mul(mul(-2 * self.ra, mul(self.Id, self.c1) - mul(self.Iq, self.c2)), iM)
+
+        gd = div(mul(mul(self.xd2, self.Td02), self.xd - self.xd1), mul(self.xd1, self.Td01))
+        gq = div(mul(mul(self.xq2, self.Td02), self.xq - self.xq1), mul(self.xq1, self.Td01))
+        a1 = div(self.u, self.Td02)
+        a2 = mul(a1, self.xd1 - self.xd2 + gd)
+        a3 = div(mul(self.u, self.Taa), mul(self.Td01, self.Td02))
+        a4 = div(self.u, self.Td01)
+        a5 = mul(a4, self.xd - self.xd1 - gd)
+        a6 = mul(a4, 1 - div(self.Taa, self.Td01))
+        b1 = div(self.u, self.Tq02)
+        b2 = mul(b1, self.xq1 - self.xq2 + gq)
+        b3 = div(self.u, self.Tq01)
+        b4 = mul(b3, self.xq - self.xq1 - gq)
+
+        system.DAE.Fx = system.DAE.Fx + spmatrix(N1, self.omega, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(N2, self.omega, self.e2d, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(a5, M1), self.e1q, self.delta, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(a6, self.Komega), self.e1q, self.omega, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(a4, self.synsat2())+(~self.u), self.e1q, self.e1q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(a5, self.c3), self.e1q, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(a5, self.c1), self.e1q, self.e2d, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(b4, M2), self.e1d, self.delta, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(b3+(~self.u), self.e1d, self.e1d, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(b4, self.c1), self.e1d, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(b4, self.c2), self.e1d, self.e2d, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(a2, M1), self.e2q, self.delta, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(a3, self.Komega), self.e2q, self.omega, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(a1, self.e2q, self.e1q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(a1+mul(a2, self.c3) + (~self.u), self.e2q, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(a2, self.c1), self.e2q, self.e2d, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(b2, M2), self.e2d, self.delta, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(b1, self.e2d, self.e1d, (system.DAE.nx, system.DAE.nx)) \
+                        + spmatrix(mul(b2, self.c1), self.e2d, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(b1+mul(b2, self.c2) + (~self.u), self.e2d, self.e2d, (system.DAE.nx, system.DAE.nx))
+
+        system.DAE.Fy = system.DAE.Fy \
+                        + spmatrix(a6, self.e1q, self.vf, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(a3, self.e2q, self.vf, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a5, M1), self.e1q, self.a, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a5, M3), self.e1q, self.v, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(mul(b4, M2), self.e1d, self.a, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(mul(b4, M4), self.e1d, self.v, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a2, M1), self.e2q, self.a, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a2, M3), self.e2q, self.v, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(mul(b2, M2), self.e2d, self.a, (system.DAE.nx, system.DAE.ny)) \
+                        + spmatrix(mul(b2, M4), self.e2d, self.v, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a6, self.KP), self.e1q, self.p, (system.DAE.nx, system.DAE.ny)) \
+                        - spmatrix(mul(a3, self.KP), self.e2q, self.p, (system.DAE.nx, system.DAE.ny))
+
+        system.DAE.Gx = system.DAE.Gx + spmatrix(Gp1, self.p, self.e2q, (system.DAE.ny, system.DAE.nx)) \
+                        + spmatrix(Gp2, self.p, self.e2d, (system.DAE.ny, system.DAE.nx)) \
+                        + spmatrix(Gq1, self.q, self.e2q, (system.DAE.ny, system.DAE.nx)) \
+                        + spmatrix(Gq2, self.q, self.e2d, (system.DAE.ny, system.DAE.nx))
+
+    def synsat2(self):
+
+        # print(type([0.8] * self.n))
+        # print(matrix(0.8, (self.n, 1)))
+        b = matrix([[matrix(0.8, (self.n, 1))], list([1.0 - self.S10]), list([1.2 * (1.0 - self.S12)])])
+        # print(matrix([12.5, -25, 12.5]))
+        c2 = b * matrix([12.5, -25, 12.5])
+        c1 = b * matrix([-27.5, 50, -22.5])
+        c0 = b * matrix([15, -24, 10])
+
+        output = matrix(1, (self.n, 1))
+
+        for i in range(self.n):
+            if system.DAE.x[self.e1q[i]] > 0.8:
+                output[i] = mul(2*c2[i], system.DAE.x[self.e1q[i]]) + c1[i]
+
+        return output
+
 

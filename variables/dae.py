@@ -13,6 +13,9 @@ class dae():
         self.Y_G = matrix()        # 导纳矩阵实部
         self.Y_B = matrix()        # 导纳矩阵虚部
         self.Gy = []         # 代数方程的雅可比矩阵
+        self.Fx = []
+        self.Fy = []
+        self.Gx = []
         self.nx = 0          # 状态变量个数
         self.ny = 0          # 代数变量个数，默认为0
         self.n_bus = 0        # 母线节点数，默认为0
