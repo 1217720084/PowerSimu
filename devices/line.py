@@ -121,7 +121,18 @@ class line(base_device):
         dR=dR-self.Y*diagV
 
         dR=diagV.H.T*dR
-        system.DAE.Gy=sparse([[dR.imag(),dR.real()],[dS.real(),dS.imag()]])
+
+        # system.DAE.Gy = matrix(0.0, (system.DAE.ny, system.DAE.ny))
+        #
+        # system.DAE._list2matrix()
+        # system.DAE.Gy = spmatrix(dR.imag().V, dR.imag().I, dR.imag().J, (system.DAE.ny, system.DAE.ny)) \
+        #                 + spmatrix(dR.real().V, dR.real().I, dR.real().J+system.Bus.n, (system.DAE.ny, system.DAE.ny)) \
+        #                 + spmatrix(dS.real().V, dS.real().I+system.Bus.n, dS.real().J, (system.DAE.ny, system.DAE.ny)) \
+        #                 + spmatrix(dS.imag().V, dS.imag().I+system.Bus.n, dS.imag().J+system.Bus.n, (system.DAE.ny, system.DAE.ny))
+
+
+        Gy=sparse([[dR.imag(),dR.real()],[dS.real(),dS.imag()]])
+        system.DAE.Gy = spmatrix(Gy.V, Gy.I, Gy.J, (system.DAE.ny, system.DAE.ny))
 
         system.DAE.Gy = matrix(system.DAE.Gy)
 

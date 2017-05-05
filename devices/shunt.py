@@ -72,6 +72,7 @@ class shunt(base_device):
 
         spcsuscepv = spmatrix(suscepv, self.v,self.v, (m, m), 'z')
 
-        system.DAE.Gy += spmatrix(conducv, self.a, self.v, (m, m), 'z')- spmatrix(suscepv, self.v,self.v, (m, m), 'z')
+
+        system.DAE.Gy = system.DAE.Gy + spmatrix(conducv, self.a, self.v, (m, m), 'z')- spmatrix(suscepv, self.v,self.v, (m, m), 'z')
         system.DAE.Gy = sparse(system.DAE.Gy)
         system.DAE.Gy = matrix(system.DAE.Gy.real())

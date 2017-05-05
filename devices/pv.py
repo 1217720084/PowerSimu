@@ -139,7 +139,7 @@ class slack(base_device):
         # Qmin
         err = [0] * self.n
 
-        for i in range(len(self.n)):
+        for i in range(self.n):
             err[i] = self.qgmin[i] - system.DAE.g[self.v[i]] - prev_err
         max_err = max(err)
         if max_err > 0 & ~system.PV.newpq:

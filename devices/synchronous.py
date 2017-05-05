@@ -82,7 +82,7 @@ class syn6(base_device):
         self._params.extend(['fn', 'xl', 'ra', 'xd', 'xd1', 'xd2', 'Td01', 'Td02',
                              'xq', 'xq1', 'xq2', 'Tq01', 'Tq02', 'M', 'D', 'u', 'ganmaP', 'ganmaQ',
                              'Taa', 'S10', 'S12', 'pm0', 'vf0', 'J11', 'J12', 'J21', 'J22', 'Komega',
-                             'KP', 'nCOI'])
+                             'KP', 'nCOI', 'vf'])
         self._z = ['xl', 'ra', 'xd', 'xd1', 'xd2', 'xq', 'xq1', 'xq2']
         self._powers = ['M', 'D']    # 后续得修改
 
@@ -271,7 +271,7 @@ class syn6(base_device):
                        spmatrix(mul(self.u, (self.pm0 - system.DAE.y[self.pm])), self.pm, ones, (system.DAE.ny, 1)) + \
                        spmatrix(mul(self.u, (self.vf0 - system.DAE.y[self.vf])), self.vf, ones, (system.DAE.ny, 1))
 
-    def gycall(self):
+    def Gycall(self):
 
         system.DAE._list2matrix()
         delta = system.DAE.x[self.delta]
@@ -318,8 +318,10 @@ class syn6(base_device):
         iM = div(self.u, self.M)
 
         # 更新Vf 和Pm
-        Vf = system.DAE.y[self.vf] + mul(self.Komega, omega-[1]*self.n) - mul(self.KP, system.DAE.y[self.p]-self.Pg0)
-        system.DAE.f[self.delta] = mul(rad, mul(self.u, omega - [1]*self.n))
+
+        system.DAE.f = matrix(system.DAE.f)
+        Vf = system.DAE.y[self.vf] + mul(self.Komega, omega-matrix(1, (self.n, 1))) - mul(self.KP, system.DAE.y[self.p]-self.Pg0)
+        system.DAE.f[self.delta] = mul(rad, mul(self.u, omega - matrix(1, (self.n, 1))))
         system.DAE.f[self.omega] = mul(system.DAE.y[self.pm]-system.DAE.y[self.p]-mul(self.ra, mul(self.Id, self.Id)+mul(self.Iq, self.Iq))-mul(self.D, omega-1), iM)
 
         gd = div(mul(mul(self.xd2, self.Td02), self.xd-self.xd1), mul(self.xd1, self.Td01))
@@ -340,7 +342,7 @@ class syn6(base_device):
         system.DAE.f[self.e2q] = mul(-a1, e2q) + mul(a2, e1q) - mul(a2, self.Id) + mul(a3, Vf)
         system.DAE.f[self.e2d] = mul(-b1, e2d) + mul(b1, e1d) + mul(b2, self.Iq)
 
-    def fxcall(self):
+    def Fxcall(self):
 
         delta = system.DAE.x[self.delta]
         omega = system.DAE.x[self.omega]
@@ -364,9 +366,9 @@ class syn6(base_device):
         rad = 2 * 3.1415926 * system.Settings.freq
         Wn = self.u * rad  # print(Wn)
 
-        system.DAE.Fx = system.DAE.Fx - spmatrix(~self.u, self.delta, self.delta, (system.DAE.nx, system.DAE.nx)) \
+        system.DAE.Fx = system.DAE.Fx - spmatrix(matrix(1, (self.n, 1))-self.u, self.delta, self.delta, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(Wn, self.delta, self.omega, (system.DAE.nx, system.DAE.nx)) \
-                        - spmatrix(mul(iM, self.D)+(~self.u), self.omega, self.omega, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(iM, self.D)+matrix(1, (self.n, 1))-self.u, self.omega, self.omega, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(mul(2*self.ra, mul(self.Id, M1)+mul(self.Iq, M2)), iM), self.omega, self.delta, (system.DAE.nx, system.DAE.nx))
         system.DAE.Fy = system.DAE.Fy \
                         - spmatrix(mul(mul(2 * self.ra, mul(self.Id, M1) + mul(self.Iq, M2)), iM), self.omega, self.a, (system.DAE.nx, system.DAE.ny)) \
@@ -401,22 +403,22 @@ class syn6(base_device):
                         + spmatrix(N2, self.omega, self.e2d, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(a5, M1), self.e1q, self.delta, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(a6, self.Komega), self.e1q, self.omega, (system.DAE.nx, system.DAE.nx)) \
-                        - spmatrix(mul(a4, self.synsat2())+(~self.u), self.e1q, self.e1q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(mul(a4, self.synsat2())+matrix(1, (self.n, 1)), self.e1q, self.e1q, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(a5, self.c3), self.e1q, self.e2q, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(a5, self.c1), self.e1q, self.e2d, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(b4, M2), self.e1d, self.delta, (system.DAE.nx, system.DAE.nx)) \
-                        - spmatrix(b3+(~self.u), self.e1d, self.e1d, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(b3+matrix(1, (self.n, 1)), self.e1d, self.e1d, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(b4, self.c1), self.e1d, self.e2q, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(b4, self.c2), self.e1d, self.e2d, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(a2, M1), self.e2q, self.delta, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(a3, self.Komega), self.e2q, self.omega, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(a1, self.e2q, self.e1q, (system.DAE.nx, system.DAE.nx)) \
-                        - spmatrix(a1+mul(a2, self.c3) + (~self.u), self.e2q, self.e2q, (system.DAE.nx, system.DAE.nx)) \
+                        - spmatrix(a1+mul(a2, self.c3) + matrix(1, (self.n, 1)), self.e2q, self.e2q, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(a2, self.c1), self.e2q, self.e2d, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(b2, M2), self.e2d, self.delta, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(b1, self.e2d, self.e1d, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(b2, self.c1), self.e2d, self.e2q, (system.DAE.nx, system.DAE.nx)) \
-                        - spmatrix(b1+mul(b2, self.c2) + (~self.u), self.e2d, self.e2d, (system.DAE.nx, system.DAE.nx))
+                        - spmatrix(b1+mul(b2, self.c2) + matrix(1, (self.n, 1)), self.e2d, self.e2d, (system.DAE.nx, system.DAE.nx))
 
         system.DAE.Fy = system.DAE.Fy \
                         + spmatrix(a6, self.e1q, self.vf, (system.DAE.nx, system.DAE.ny)) \
@@ -447,7 +449,7 @@ class syn6(base_device):
         c1 = b * matrix([-27.5, 50, -22.5])
         c0 = b * matrix([15, -24, 10])
 
-        output = matrix(1, (self.n, 1))
+        output = matrix(1.0, (self.n, 1))
 
         for i in range(self.n):
             if system.DAE.x[self.e1q[i]] > 0.8:

@@ -12,6 +12,8 @@ from cvxopt.umfpack import numeric,symbolic,solve    #模块cvxopt.umfpack包含
 from numpy import multiply
 import numpy as np
 from time import clock
+from numpy.linalg import eigvals
+from cvxopt.umfpack import linsolve
 
 # 开始时间
 start = clock()
@@ -214,8 +216,6 @@ system.Line._bus_index()
 
 system.Line.build_y()
 
-
-
 #system.DAE.Y = sparse(system.DAE.Y)
 #print(system.DAE.Y)
 system.Line.gcall()
@@ -226,30 +226,6 @@ system.SW.gcall()
 print(system.DAE.g)
 print(system.DAE.y)
 
-
-
-
-# def calcInc():
-#     system.Line.gcall()
-#     system.PQ.gcall()
-#     system.Shunt.gcall()
-#     system.PV.gcall()
-#     system.SW.gcall()
-#     system.Line.Gycall()
-#     system.Shunt.Gycall()
-#     system.PV.Gycall()
-#     system.SW.Gycall()
-#
-#
-#
-#     system.DAE.g = np.array(system.DAE.g)
-#
-#     y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
-#     y=matrix(y)
-#     return y
-
-
-#
 
 def calcInc():
     global F
@@ -277,23 +253,13 @@ def calcInc():
 
     return inc
 
-#
+    # print(system.DAE.Gy)
+    # print(system.DAE.g)
+    # system.DAE.g = np.array(system.DAE.g)
+    # print(system.DAE.g)
+    # y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
+    # return y
 
-
-
-
-
-
-    print(system.DAE.Gy)
-    print(system.DAE.g)
-    system.DAE.g = np.array(system.DAE.g)
-    print(system.DAE.g)
-    y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
-    return y
-# system.Line.gcall()
-# system.PQ.gcall()
-# system.Shunt.gcall()
-# system.PV.gcall()
 system.DAE.g = np.array(system.DAE.g)
 
 iteration = 1
@@ -333,15 +299,15 @@ t = finish - start
 print('潮流计算运行时间：%f' % t)
 
 # 计算Pl和Ql
-system.DAE.g = matrix(0.0, (system.DAE.ny,1))
-print(system.DAE.g)
+system.DAE.g = matrix(0.0, (system.DAE.ny, 1))
+# print(system.DAE.g)
 system.PQ.gcall()
 system.Shunt.gcall()
 system.DAE._list2matrix()
 system.Bus.Pl = system.DAE.g[system.Bus.a]
-print(system.Bus.Pl)
+# print(system.Bus.Pl)
 system.Bus.Ql = system.DAE.g[system.Bus.v]
-print(system.Bus.Ql)
+# print(system.Bus.Ql)
 
 # 计算Pg 和 Qg
 system.Line.gcall()
@@ -350,8 +316,8 @@ system.Shunt.gcall()
 system.DAE._list2matrix()
 system.Bus.Pg = system.DAE.g[system.Bus.a]
 system.Bus.Qg = system.DAE.g[system.Bus.v]
-print(system.Bus.Pg)
-print(system.Bus.Qg)
+# print(system.Bus.Pg)
+# print(system.Bus.Qg)
 
 
 # 测试Syn6
@@ -372,6 +338,14 @@ system.DAE.f = [0.0] * system.DAE.nx
 system.DAE.y = list(system.DAE.y)
 system.DAE.g = list(system.DAE.g)
 
+# 重新生成雅可比矩阵
+system.DAE.Gy = matrix(1.0, (system.DAE.ny, system.DAE.ny))
+system.DAE.Fx = matrix(1.0, (system.DAE.nx, system.DAE.nx))
+system.DAE.Fy = matrix(1.0, (system.DAE.nx, system.DAE.ny))
+system.DAE.Gx = matrix(1.0, (system.DAE.ny, system.DAE.nx))
+
+
+
 newy = [0]*(system.DAE.ny-system.Bus.n * 2)
 system.DAE.y.extend(newy)
 system.DAE.g.extend(newy)
@@ -381,6 +355,7 @@ system.DAE.y = matrix(system.DAE.y)
 system.Syn6._list2matrix()
 system.Syn6.base(Vb=system.Bus.Vb[system.Syn6.a])
 system.Syn6.setx0()
+# print('Syn6 setx0')
 # print(system.DAE.x)
 # 测试Avr setx0
 
@@ -390,15 +365,55 @@ system.Avr2._list2matrix()
 # system.Avr2.base(Vb=system.Bus.Vb[system.Avr2.a])
 system.Avr1.setx0()
 system.Avr2.setx0()
-system.Avr1._matrix2list()
-system.Avr2._matrix2list()
+# print('Avr setx0')
+# print(system.DAE.y)
 
-# text Syn6.gcall
-# system.Syn6._matrix2list()
 
-print(system.Syn6.__dict__)
-print(system.DAE.ny)
+# 重新生成微分代数方程和雅可比矩阵
+
+system.DAE.g = matrix(0.0, (system.DAE.ny, 1))
+
+# call
+system.DAE._list2matrix()
+system.Line.gcall()
+system.PQ.gcall()
+system.Shunt.gcall()
 system.Syn6.gcall()
-print(system.DAE.g)
-system.Syn6.gycall()
+system.Avr1.gcall()
+system.Avr2.gcall()
+system.PV.gcall()
+#system.SW.gcall()
+system.Line.Gycall()
+system.Shunt.Gycall()
+system.Syn6.Gycall()
+system.Avr1.Gycall()
+system.Avr2.Gycall()
+system.PV.Gycall()
+system.SW.Gycall()
 
+system.Syn6.fcall()
+system.Avr1.fcall()
+system.Avr2.fcall()
+
+system.Syn6.Fxcall()
+system.Avr1.Fxcall()
+system.Avr2.Fxcall()
+
+# 生成状态矩阵
+
+def state_matrix():
+
+    Gyx = matrix(system.DAE.Gx)
+    linsolve(sparse(system.DAE.Gy), Gyx)
+    return system.DAE.Fx - system.DAE.Fy * Gyx
+
+state_matrix()
+
+# 计算特征值
+
+def eigs():
+    As = state_matrix()
+    return eigvals(As)
+eigen = eigs()
+
+print(matrix(eigs()))
