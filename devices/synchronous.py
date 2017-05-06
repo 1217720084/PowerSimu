@@ -257,17 +257,17 @@ class syn6(base_device):
         cc = cos(delta - ag)
 
         self.Id = mul(-vg, (mul(self.c1, ss)+mul(self.c3, cc)))
-        self.Iq = mul(-vg, (mul(self.c2, ss) - mul(self.c1, cc)))
+        self.Iq = mul(vg, (mul(self.c2, ss) - mul(self.c1, cc)))
 
         self.Id = self.Id + mul(self.c1, e2d) + mul(self.c3, e2q)
         self.Iq = self.Iq - mul(self.c2, e2d) + mul(self.c1, e2q)
 
         ones = [0] * self.n
         system.DAE.g = system.DAE.g -\
-                       spmatrix(system.DAE.y[self.p], self.a, ones, (system.DAE.ny, 1))- \
+                       spmatrix(system.DAE.y[self.p], self.a, ones, (system.DAE.ny, 1)) - \
                        spmatrix(system.DAE.y[self.q], self.v, ones, (system.DAE.ny, 1)) + \
-                       spmatrix(mul(vg, (mul(self.Id, ss)+mul(self.Iq, cc))), self.p, ones, (system.DAE.ny, 1)) + \
-                       spmatrix(mul(vg, (mul(self.Id, cc) - mul(self.Iq, ss))), self.q, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(vg, (mul(self.Id, ss)+mul(self.Iq, cc)))-system.DAE.y[self.p], self.p, ones, (system.DAE.ny, 1)) + \
+                       spmatrix(mul(vg, (mul(self.Id, cc) - mul(self.Iq, ss)))-system.DAE.y[self.q], self.q, ones, (system.DAE.ny, 1)) + \
                        spmatrix(mul(self.u, (self.pm0 - system.DAE.y[self.pm])), self.pm, ones, (system.DAE.ny, 1)) + \
                        spmatrix(mul(self.u, (self.vf0 - system.DAE.y[self.vf])), self.vf, ones, (system.DAE.ny, 1))
 

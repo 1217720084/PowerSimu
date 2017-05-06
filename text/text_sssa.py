@@ -316,6 +316,7 @@ system.Shunt.gcall()
 system.DAE._list2matrix()
 system.Bus.Pg = system.DAE.g[system.Bus.a]
 system.Bus.Qg = system.DAE.g[system.Bus.v]
+# print('Bus.Pg、Qg')
 # print(system.Bus.Pg)
 # print(system.Bus.Qg)
 
@@ -378,7 +379,7 @@ system.DAE._list2matrix()
 system.Line.gcall()
 system.PQ.gcall()
 system.Shunt.gcall()
-system.Syn6.gcall()
+system.Syn6.gcall() # 测试到这里
 system.Avr1.gcall()
 system.Avr2.gcall()
 system.PV.gcall()

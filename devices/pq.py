@@ -10,7 +10,7 @@ class pq(base_device):
     def __init__(self):
 
         base_device.__init__(self)
-        self._data.update({'Pl': 1, 'bus': None, 'Ql': 1,  'Vmax': 1.1, 'Vmin': 0.95})
+        self._data.update({'Pl': 1, 'bus': None, 'Ql': 1,  'Vmax': 1.2, 'Vmin': 0.95})
         self._type = 'PQ'
         self._name = 'PQ'
         self._bus = {'bus': ['a', 'v']}

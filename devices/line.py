@@ -81,8 +81,8 @@ class line(base_device):
 
 
 
-        print(self.Y)
-        print(self.Y.V)
+        # print(self.Y)
+        # print(self.Y.V)
 
     def gcall(self):
 
@@ -100,6 +100,8 @@ class line(base_device):
         for i in range(system.Bus.n):
              system.DAE.g[i] = self.p[i]
              system.DAE.g[i+system.Bus.n] = self.q[i]
+
+
 
 
     def Gycall(self):
