@@ -223,8 +223,8 @@ system.PQ.gcall()
 system.Shunt.gcall()
 system.PV.gcall()
 system.SW.gcall()
-print(system.DAE.g)
-print(system.DAE.y)
+# print(system.DAE.g)
+# print(system.DAE.y)
 
 
 def calcInc():
@@ -323,15 +323,16 @@ system.Bus.Qg = system.DAE.g[system.Bus.v]
 
 # 测试Syn6
 system.Syn6._bus_index()
-system.Syn6._xy_index()
+system.Syn6._dxy_index()
 
 # 测试Avr
 system.Avr1._bus_index()
 system.Avr2._bus_index()
 system.Avr1.getbus()
 system.Avr2.getbus()
-system.Avr1._xy_index()
-system.Avr2._xy_index()
+system.Avr2._dxy_index()
+system.Avr1._dxy_index()
+
 
 # 重新生成对应维度的x, y, g, f
 system.DAE.x = [0.0] * system.DAE.nx
@@ -340,10 +341,10 @@ system.DAE.y = list(system.DAE.y)
 system.DAE.g = list(system.DAE.g)
 
 # 重新生成雅可比矩阵
-system.DAE.Gy = matrix(1.0, (system.DAE.ny, system.DAE.ny))
-system.DAE.Fx = matrix(1.0, (system.DAE.nx, system.DAE.nx))
-system.DAE.Fy = matrix(1.0, (system.DAE.nx, system.DAE.ny))
-system.DAE.Gx = matrix(1.0, (system.DAE.ny, system.DAE.nx))
+system.DAE.Gy = matrix(0.0, (system.DAE.ny, system.DAE.ny))
+system.DAE.Fx = matrix(0.0, (system.DAE.nx, system.DAE.nx))
+system.DAE.Fy = matrix(0.0, (system.DAE.nx, system.DAE.ny))
+system.DAE.Gx = matrix(0.0, (system.DAE.ny, system.DAE.nx))
 
 
 
@@ -392,14 +393,18 @@ system.Avr2.Gycall()
 system.PV.Gycall()
 system.SW.Gycall()
 
+system.DAE.Gy = sparse(system.DAE.Gy)
+# print(system.DAE.Gy.V)
+
 system.Syn6.fcall()
 system.Avr1.fcall()
 system.Avr2.fcall()
-
+print(system.DAE.f)
 system.Syn6.Fxcall()
 system.Avr1.Fxcall()
 system.Avr2.Fxcall()
-
+system.DAE.Gx = sparse(system.DAE.Gx)
+print(system.DAE.Fy.V)
 # 生成状态矩阵
 
 def state_matrix():

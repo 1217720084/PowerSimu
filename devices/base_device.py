@@ -162,14 +162,26 @@ class base_device:
                 self.__dict__[item][var] = system.DAE.ny
                 system.DAE.ny += 1
 
-       # for var in range(self.n):
 
-           # for item in self._states:
-             #   self.__dict__[item][var] = system.DAE.nx
-              #  system.DAE.nx += 1
-           # for item in self._algebs:
-              #  self.__dict__[item][var] = system.DAE.ny
-               # system.DAE.ny += 1
+    def _dxy_index(self):
+
+        zeros = [0] * self.n
+        for item in self._states:
+            self.__dict__[item] = zeros[:]
+        for item in self._algebs:
+            self.__dict__[item] = zeros[:]
+
+        for var in range(self.n):
+
+            for item in self._states:
+                self.__dict__[item][var] = system.DAE.nx
+                system.DAE.nx += 1
+            for item in self._algebs:
+                self.__dict__[item][var] = system.DAE.ny
+                system.DAE.ny += 1
+
+
+
 
     def _bus_index(self):
 

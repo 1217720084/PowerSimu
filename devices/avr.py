@@ -72,6 +72,7 @@ class avr1(base_device):
             if vr[i] < self.vrmin[i]:
                 print('Warn: vr1小于最小值vrmin')
 
+        system.Syn6.vf0[self.a] = 0
     def getbus(self):
         for i in range(self.n):
             self.ba.append(system.Syn6.a[self.a[i]])
@@ -84,11 +85,12 @@ class avr1(base_device):
 
 
         system.DAE.g = system.DAE.g + spmatrix(system.DAE.x[self.vf], self.vfd, [0]*self.n, (system.DAE.ny, 1)) \
-                + spmatrix(mul(self.u, self.vref0)-system.DAE.y[self.vref], self.vref, [0]*self.n, (system.DAE.ny, 1))
+                       + spmatrix(mul(self.u, self.vref0)-system.DAE.y[self.vref], self.vref, [0]*self.n, (system.DAE.ny, 1))
+
 
     def Gycall(self):
 
-        system.DAE.Gy = system.DAE.Gy - spmatrix([1]*self.n,self.vref, self.vref, (system.DAE.ny, system.DAE.ny))
+        system.DAE.Gy = system.DAE.Gy - spmatrix([1]*self.n, self.vref, self.vref, (system.DAE.ny, system.DAE.ny))
 
     def fcall(self):
 
@@ -111,7 +113,7 @@ class avr1(base_device):
         vr = mul(self.K0, vr2) + mul(K3, mul(K1, vref-vm)+vr1)
 
         system.DAE.f[self.vr1] = div(mul(self.u, mul(K2, vref-vm)-vr1), self.T1)
-        system.DAE.f[self.vr2] = div(mul(self.u, mul(K4, vr1+mul(K1, vref - vm)-mul(self.K0, vr2)) - vr1), mul(self.T3, self.K0))
+        system.DAE.f[self.vr2] = div(mul(self.u, mul(K4, vr1+mul(K1, vref - vm))-mul(self.K0, vr2)), mul(self.T3, self.K0))
 
         # hard limit
 
@@ -236,18 +238,23 @@ class avr2(base_device):
                 print('Warn: vr2超出最大值vrmax')
             if Ce[i] < self.vrmin[i]:
                 print('Warn: vr2小于最小值vrmin')
+
+        system.Syn6.vf0[self.a] = 0
+
     def getbus(self):
         for i in range(self.n):
             self.ba.append(system.Syn6.a[self.a[i]])
             self.bv.append(system.Syn6.v[self.a[i]])
+
+
 
     def gcall(self):
 
         self.vfd = system.Syn6.vf[self.a]
 
         system.DAE.g = system.DAE.g + spmatrix(system.DAE.x[self.vf], self.vfd, [0] * self.n, (system.DAE.ny, 1)) \
-                       + spmatrix(mul(self.u, self.vref0) - system.DAE.y[self.vref], self.vref, [0] * self.n,
-                                  (system.DAE.ny, 1))
+                       + spmatrix(mul(self.u, self.vref0) - system.DAE.y[self.vref], self.vref, [0] * self.n, (system.DAE.ny, 1))
+
 
     def Gycall(self):
 

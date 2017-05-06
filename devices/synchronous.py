@@ -211,7 +211,7 @@ class syn6(base_device):
 
         # print(type(system.Syn6.synsat()))
         # print(system.Syn6.synsat())
-        self.vf0 = mul(K1, Id) + div(system.Syn6.synsat(), 1-div(self.Taa, self.Td01))
+        self.vf0 = div(mul(K1, Id) + system.Syn6.synsat(), 1-div(self.Taa, self.Td01))
         system.DAE.y[self.vf] = self.vf0
 
         # !!! 移除静态发电机节点
@@ -324,6 +324,9 @@ class syn6(base_device):
         system.DAE.f[self.delta] = mul(rad, mul(self.u, omega - matrix(1, (self.n, 1))))
         system.DAE.f[self.omega] = mul(system.DAE.y[self.pm]-system.DAE.y[self.p]-mul(self.ra, mul(self.Id, self.Id)+mul(self.Iq, self.Iq))-mul(self.D, omega-1), iM)
 
+        # print('sss')
+        # print(mul(self.D, omega-1))
+        # print(mul(system.DAE.y[self.pm]-system.DAE.y[self.p]-mul(self.ra, mul(self.Id, self.Id)+mul(self.Iq, self.Iq))-mul(self.D, omega-1), iM))
         gd = div(mul(mul(self.xd2, self.Td02), self.xd-self.xd1), mul(self.xd1, self.Td01))
         gq = div(mul(mul(self.xq2, self.Td02), self.xq - self.xq1), mul(self.xq1, self.Td01))
         a1 = div(self.u, self.Td02)
@@ -337,10 +340,12 @@ class syn6(base_device):
         b3 = div(self.u, self.Tq01)
         b4 = mul(b3, self.xq-self.xq1-gq)
 
-        system.DAE.f[self.e1q] = mul(-a4, self.synsat()) - mul(a5, self.Id) + mul(a6, Vf)
+        system.DAE.f[self.e1q] = -mul(a4, self.synsat()) - mul(a5, self.Id) + mul(a6, Vf)
+        # print(self.synsat())
         system.DAE.f[self.e1d] = mul(-b3, e1d) + mul(b4, self.Iq)
-        system.DAE.f[self.e2q] = mul(-a1, e2q) + mul(a2, e1q) - mul(a2, self.Id) + mul(a3, Vf)
+        system.DAE.f[self.e2q] = mul(-a1, e2q) + mul(a1, e1q) - mul(a2, self.Id) + mul(a3, Vf)
         system.DAE.f[self.e2d] = mul(-b1, e2d) + mul(b1, e1d) + mul(b2, self.Iq)
+
 
     def Fxcall(self):
 
@@ -366,6 +371,7 @@ class syn6(base_device):
         rad = 2 * 3.1415926 * system.Settings.freq
         Wn = self.u * rad  # print(Wn)
 
+        # print(mul(iM, self.D)+matrix(1, (self.n, 1))-self.u)
         system.DAE.Fx = system.DAE.Fx - spmatrix(matrix(1, (self.n, 1))-self.u, self.delta, self.delta, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(Wn, self.delta, self.omega, (system.DAE.nx, system.DAE.nx)) \
                         - spmatrix(mul(iM, self.D)+matrix(1, (self.n, 1))-self.u, self.omega, self.omega, (system.DAE.nx, system.DAE.nx)) \
