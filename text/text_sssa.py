@@ -7,14 +7,15 @@
 # import
 
 import system
-from cvxopt.base import spmatrix, sparse,matrix
-from cvxopt.umfpack import numeric,symbolic,solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
+from cvxopt.base import spmatrix, sparse, matrix, mul
+from cvxopt.umfpack import numeric, symbolic, solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
 from numpy import multiply
 import numpy as np
 from time import clock
-from numpy.linalg import eigvals
+from numpy.linalg import eigvals, eig
 from cvxopt.umfpack import linsolve
 from scipy import linalg
+from cvxopt.lapack import gesv
 # 开始时间
 start = clock()
 
@@ -442,3 +443,33 @@ As = state_matrix()
 # scipy
 w, v= linalg.eig(As)
 print(matrix(w))
+
+# 计算参与因子
+
+# set_printoptions(threshold = 'nan')
+
+def compute_eig(As):
+
+    mu, N = eig(matrix(As))
+    N = matrix(N)
+    n =len(mu)
+    idx = range(n)
+    W = matrix(spmatrix(1.0, idx, idx, (n, n), N.typecode))
+    gesv(N, W)
+    # W = np.linalg.pinv(N)
+    # W = matrix(W)
+    pf = mul(abs(W.T), abs(N))
+    b = matrix(1.0, (1, n))
+    WN = b * pf
+    pf = pf.T
+
+    for item in idx:
+
+        mur = mu[item].real
+        mui = mu[item].imag
+        mu[item] = complex(round(mur, 5), round(mui, 5))
+        pf[item, :] /= WN[item]
+
+    print(pf)
+
+compute_eig(As)
