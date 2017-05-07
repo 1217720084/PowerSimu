@@ -14,7 +14,7 @@ import numpy as np
 from time import clock
 from numpy.linalg import eigvals
 from cvxopt.umfpack import linsolve
-
+from scipy import linalg
 # 开始时间
 start = clock()
 
@@ -393,33 +393,52 @@ system.Avr2.Gycall()
 system.PV.Gycall()
 system.SW.Gycall()
 
-system.DAE.Gy = sparse(system.DAE.Gy)
-# print(system.DAE.Gy.V)
+
 
 system.Syn6.fcall()
 system.Avr1.fcall()
 system.Avr2.fcall()
-print(system.DAE.f)
+# print(system.DAE.f)
 system.Syn6.Fxcall()
 system.Avr1.Fxcall()
 system.Avr2.Fxcall()
+
+system.DAE.Gy = sparse(system.DAE.Gy)
+system.DAE.Fx = sparse(system.DAE.Fx)
+system.DAE.Fy = sparse(system.DAE.Fy)
 system.DAE.Gx = sparse(system.DAE.Gx)
-print(system.DAE.Fy.V)
+# print(system.DAE.Fx.V)
 # 生成状态矩阵
 
 def state_matrix():
 
     Gyx = matrix(system.DAE.Gx)
     linsolve(sparse(system.DAE.Gy), Gyx)
-    return system.DAE.Fx - system.DAE.Fy * Gyx
+    I = []
+    J = []
+    for i in range(system.DAE.nx):
+        I.append(i)
+        J.append(i)
+    return system.DAE.Fx - system.DAE.Fy * Gyx -spmatrix(1e-6, I, J)
 
-state_matrix()
-
+# state_matrix()
+As = state_matrix()
+# As = sparse(As)
 # 计算特征值
 
-def eigs():
-    As = state_matrix()
-    return eigvals(As)
-eigen = eigs()
+# cvxopt
+# def eigs():
+#     As = state_matrix()
+#     return eigvals(As)
+# eigen = eigs()
 
-print(matrix(eigs()))
+# print(matrix(eigs()))
+
+# numpy
+# w = np.linalg.eigvals(As)
+# w = matrix(w)
+# print(np.linalg.eigvals(As))
+
+# scipy
+w, v= linalg.eig(As)
+print(matrix(w))
