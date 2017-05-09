@@ -412,7 +412,7 @@ class syn6(base_device):
             else:
                 a.append(1)
         a = matrix(a)
-        print(matrix(a))
+
         system.DAE.Fx = system.DAE.Fx + spmatrix(N1, self.omega, self.e2q, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(N2, self.omega, self.e2d, (system.DAE.nx, system.DAE.nx)) \
                         + spmatrix(mul(a5, M1), self.e1q, self.delta, (system.DAE.nx, system.DAE.nx)) \

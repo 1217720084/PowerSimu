@@ -8,7 +8,7 @@
 
 import system
 from cvxopt.base import spmatrix, sparse, matrix, mul
-from cvxopt.umfpack import numeric, symbolic, solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
+from cvxopt.umfpack import numeric, symbolic, solve  # 模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
 from numpy import multiply
 import numpy as np
 from time import clock
@@ -16,6 +16,7 @@ from numpy.linalg import eigvals, eig
 from cvxopt.umfpack import linsolve
 from scipy import linalg
 from cvxopt.lapack import gesv
+
 # 开始时间
 start = clock()
 
@@ -30,21 +31,18 @@ system.Avr1._init_data()
 system.Avr2._init_data()
 system.Tg1._init_data()
 
-case = open('text_d_036.txt')
+case = open('text_d_036_tg.txt')
 for each_line in case:
 
     data = each_line.split()
 
-
     if data[0] == 'Bus':
-
         bus = data[0] + '_' + str(data[1])
         Vb = float(data[2])
         bus_case = {'bus': bus, 'Vb': Vb}
         system.Bus.add(idx=bus, **bus_case)
 
     if data[0] == 'PV':
-
         bus = 'Bus_' + str(data[1])
         Sn = float(data[2])
         Vn = float(data[3])
@@ -59,7 +57,6 @@ for each_line in case:
         system.PV.add(**PV_case)
 
     if data[0] == 'PQ':
-
         bus = 'Bus_' + str(data[1])
         Sn = float(data[2])
         Vn = float(data[3])
@@ -72,7 +69,6 @@ for each_line in case:
         system.PQ.add(**PQ_case)
 
     if data[0] == 'SW':
-
         bus = 'Bus_' + str(data[1])
         Sn = float(data[2])
         Vn = float(data[3])
@@ -87,7 +83,6 @@ for each_line in case:
         system.SW.add(**SW_case)
 
     if data[0] == 'Shunt':
-
         bus = 'Bus_' + str(data[1])
         Sn = float(data[2])
         Vn = float(data[3])
@@ -114,10 +109,9 @@ for each_line in case:
         Pmax = float(data[14])
         Smax = float(data[15])
         Line_case = {'f_bus': f_bus, 'to_bus': to_bus, 'Sn': Sn, 'Vn': Vn, 'fn': fn,
-                     'l': l, 'kT': kT, 'r': r, 'x': x,'b': b, 'tap_ratio': tap_ratio,
+                     'l': l, 'kT': kT, 'r': r, 'x': x, 'b': b, 'tap_ratio': tap_ratio,
                      'theta': theta, 'Imax': Imax, 'Pmax': Pmax, 'Smax': Smax}
-        system.Line.add(**Line_case)\
-
+        system.Line.add(**Line_case)
     if data[0] == 'Syn6':
         bus = 'Bus_' + str(data[1])
         Sn = float(data[2])
@@ -136,7 +130,7 @@ for each_line in case:
         xq2 = float(data[15])
         Tq01 = float(data[16])
         Tq02 = float(data[17])
-        M = float(data[18])   # M = 2H
+        M = float(data[18])  # M = 2H
         D = float(data[19])
         Syn6_case = {'bus': bus, 'Sn': Sn, 'Vn': Vn, 'fn': fn, 'm_model': m_model,
                      'xl': xl, 'ra': ra, 'xd': xd, 'xd1': xd1, 'xd2': xd2, 'Td01': Td01, 'Td02': Td02,
@@ -192,8 +186,8 @@ for each_line in case:
         T4 = float(data[10])
         T5 = float(data[11])
         Tg1_case = {'bus': bus, 'Type': Type, 'wref0': wref0, 'R': R, 'Pmax': Pmax, 'Pmin': Pmin, 'Ts': Ts, 'Tc': Tc,
-                     'T3': T3, 'T4': T4, 'T5': T5}
-        # system.Tg1.add(**Tg1_case)
+                    'T3': T3, 'T4': T4, 'T5': T5}
+        system.Tg1.add(**Tg1_case)
 
 case.close()
 
@@ -203,14 +197,12 @@ system.Bus._bus_index()
 system.Bus._list2matrix()
 system.Bus.yinit(system.DAE)
 
-
 # PV
 system.PV._bus_index()
 system.PV._list2matrix()
 system.PV.base(Vb=system.Bus.Vb[system.PV.a])
 system.PV.yinit(system.DAE)
 system.PV._matrix2list()
-
 
 # PQ
 system.PQ._bus_index()
@@ -219,28 +211,27 @@ system.PQ.base(Vb=system.Bus.Vb[system.PQ.a])
 system.PQ.yinit(system.DAE)
 system.PQ._matrix2list()
 
-
 # SW
 system.SW._bus_index()
 system.SW.yinit(system.DAE)
 
-
 # Shunt
 system.Shunt._bus_index()
-
 
 # Line
 system.Line._bus_index()
 
 system.Line.build_y()
 
-#system.DAE.Y = sparse(system.DAE.Y)
-#print(system.DAE.Y)
+# system.DAE.Y = sparse(system.DAE.Y)
+# print(system.DAE.Y)
 system.Line.gcall()
 system.PQ.gcall()
 system.Shunt.gcall()
 system.PV.gcall()
 system.SW.gcall()
+
+
 # print(system.DAE.g)
 # print(system.DAE.y)
 
@@ -259,7 +250,7 @@ def calcInc():
     A = sparse(system.DAE.Gy)
     inc = matrix(system.DAE.g)
     if system.DAE.factorize:
-        F = symbolic(A)     #重新排列A矩阵以减少填充并执行LU分解，返回为可以传递的不透明 C object到umfpack.numeric（）。
+        F = symbolic(A)  # 重新排列A矩阵以减少填充并执行LU分解，返回为可以传递的不透明 C object到umfpack.numeric（）。
         system.DAE.factorize = False
     try:
         N = numeric(A, F)
@@ -278,6 +269,7 @@ def calcInc():
     # y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
     # return y
 
+
 system.DAE.g = np.array(system.DAE.g)
 
 iteration = 1
@@ -287,20 +279,15 @@ tol = system.Settings.error
 cycle = True
 err = []
 
-
-
-
-    #main loop
+# main loop
 while cycle or (max(abs(system.DAE.g)) > tol and iteration <= iter_max):
-
     inc = calcInc()
     cycle = False
     system.DAE.y -= inc
     err.append(max(abs(system.DAE.g)))
-    print('第%i次迭代最大误差为：<%f>' % (iteration, err[iteration-1]))
+    print('第%i次迭代最大误差为：<%f>' % (iteration, err[iteration - 1]))
     print(system.DAE.y)
     iteration += 1
-
 
     system.DAE.g = np.array(system.DAE.g)
 
@@ -319,7 +306,6 @@ print('潮流计算运行时间：%f' % t)
 for i in range(system.DAE.ny):
     system.DAE.y[i] = round(system.DAE.y[i], 5)
     print(system.DAE.y[i])
-
 
 # 计算Pl和Ql
 system.DAE.g = matrix(0.0, (system.DAE.ny, 1))
@@ -356,6 +342,10 @@ system.Avr2.getbus()
 system.Avr2._dxy_index()
 system.Avr1._dxy_index()
 
+# 测试Tg1
+system.Tg1._bus_index()
+system.Tg1._dxy_index()
+system.Tg1.getbus()
 
 # 重新生成对应维度的x, y, g, f
 system.DAE.x = [0.0] * system.DAE.nx
@@ -369,9 +359,7 @@ system.DAE.Fx = matrix(0.0, (system.DAE.nx, system.DAE.nx))
 system.DAE.Fy = matrix(0.0, (system.DAE.nx, system.DAE.ny))
 system.DAE.Gx = matrix(0.0, (system.DAE.ny, system.DAE.nx))
 
-
-
-newy = [0]*(system.DAE.ny-system.Bus.n * 2)
+newy = [0] * (system.DAE.ny - system.Bus.n * 2)
 system.DAE.y.extend(newy)
 system.DAE.g.extend(newy)
 system.DAE.y = matrix(system.DAE.y)
@@ -393,6 +381,17 @@ system.Avr2.setx0()
 # print('Avr setx0')
 # print(system.DAE.y)
 
+# 测试Tg1
+system.Tg1._list2matrix()
+system.DAE._list2matrix()
+system.Tg1.base()
+system.Tg1.setx0()
+# system.Tg1._matrix2list()
+# system.Tg1.pmech = matrix(system.Tg1.pmech)
+# print(system.Tg1.pmech)
+# print(system.Tg1.__dict__)
+# print(system.DAE.f)
+
 
 # 重新生成微分代数方程和雅可比矩阵
 
@@ -403,38 +402,43 @@ system.DAE._list2matrix()
 system.Line.gcall()
 system.PQ.gcall()
 system.Shunt.gcall()
-system.Syn6.gcall() # 测试到这里
+system.Syn6.gcall()
 system.Avr1.gcall()
 system.Avr2.gcall()
+system.Tg1.gcall()
 system.PV.gcall()
-#system.SW.gcall()
+# system.SW.gcall()
 system.Line.Gycall()
 system.Shunt.Gycall()
 system.Syn6.Gycall()
 system.Avr1.Gycall()
 system.Avr2.Gycall()
+system.Tg1.Gycall()
 system.PV.Gycall()
 system.SW.Gycall()
-
-
 
 system.Syn6.fcall()
 system.Avr1.fcall()
 system.Avr2.fcall()
+system.Tg1.fcall()
+
 # print(system.DAE.f)
 system.Syn6.Fxcall()
 system.Avr1.Fxcall()
 system.Avr2.Fxcall()
+system.Tg1.Fxcall()
 
 system.DAE.Gy = sparse(system.DAE.Gy)
 system.DAE.Fx = sparse(system.DAE.Fx)
 system.DAE.Fy = sparse(system.DAE.Fy)
 system.DAE.Gx = sparse(system.DAE.Gx)
+
+print(system.DAE.Fx.V)
+
 # print(system.DAE.Fx.V)
 # 生成状态矩阵
 
 def state_matrix():
-
     Gyx = matrix(system.DAE.Gx)
     linsolve(sparse(system.DAE.Gy), Gyx)
     I = []
@@ -442,7 +446,8 @@ def state_matrix():
     for i in range(system.DAE.nx):
         I.append(i)
         J.append(i)
-    return system.DAE.Fx - system.DAE.Fy * Gyx -spmatrix(1e-6, I, J)
+    return system.DAE.Fx - system.DAE.Fy * Gyx - spmatrix(1e-6, I, J)
+
 
 # state_matrix()
 As = state_matrix()
@@ -463,18 +468,18 @@ As = state_matrix()
 # print(np.linalg.eigvals(As))
 
 # scipy
-w, v= linalg.eig(As)
+w, v = linalg.eig(As)
 print(matrix(w))
+
 
 # 计算参与因子
 
 # set_printoptions(threshold = 'nan')
 
 def compute_eig(As):
-
     mu, N = eig(matrix(As))
     N = matrix(N)
-    n =len(mu)
+    n = len(mu)
     idx = range(n)
     W = matrix(spmatrix(1.0, idx, idx, (n, n), N.typecode))
     gesv(N, W)
@@ -486,13 +491,13 @@ def compute_eig(As):
     pf = pf.T
 
     for item in idx:
-
         mur = mu[item].real
         mui = mu[item].imag
         mu[item] = complex(round(mur, 5), round(mui, 5))
         pf[item, :] /= WN[item]
 
-    # print(pf)
+        # print(pf)
+
 
 compute_eig(As)
 
