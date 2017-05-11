@@ -152,13 +152,13 @@ system.Line.build_y()
 
 #system.DAE.Y = sparse(system.DAE.Y)
 #print(system.DAE.Y)
-system.Line.gcall()
-system.PQ.gcall()
-system.Shunt.gcall()
-system.PV.gcall()
-system.SW.gcall()
-print(system.DAE.g)
-print(system.DAE.y)
+# system.Line.gcall()
+# system.PQ.gcall()
+# system.Shunt.gcall()
+# system.PV.gcall()
+# system.SW.gcall()
+# print(system.DAE.g)
+# print(system.DAE.y)
 
 
 
@@ -218,12 +218,12 @@ def calcInc():
 
 
 
-    print(system.DAE.Gy)
-    print(system.DAE.g)
-    system.DAE.g = np.array(system.DAE.g)
-    print(system.DAE.g)
-    y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
-    return y
+    # print(system.DAE.Gy)
+    # print(system.DAE.g)
+    # system.DAE.g = np.array(system.DAE.g)
+    # print(system.DAE.g)
+    # y=np.linalg.solve(system.DAE.Gy,system.DAE.g)   #直接调用linalg中的solve求解修正方程
+    # return y
 # system.Line.gcall()
 # system.PQ.gcall()
 # system.Shunt.gcall()

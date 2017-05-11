@@ -24,6 +24,7 @@ from devices.synchronous import syn5c, syn5d, syn6a, syn6b, syn6
 from devices.avr import avr1, avr2, avr3
 from devices.turbine import tg1, tg2
 from devices.pss import pss1, pss2, pss3
+from devices.ind import ind3
 
 # list of all active devices
 device_list = ['Bus ', 'Area', 'Region', 'System', 'Line',
@@ -80,6 +81,9 @@ Tg2 = tg2()
 Pss1 = pss1()         # power system stabilizers
 Pss2 = pss2()
 Pss3 = pss3()
+
+# indution machine
+Ind3 = ind3()
 
 
 

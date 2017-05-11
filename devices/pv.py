@@ -88,6 +88,10 @@ class pv(base_device):
             system.DAE.Gy[:, i] = 0
             system.DAE.Gy[i, i] = 1
 
+    def Fxcall(self):
+        system.DAE.Fy[:, self.v] = 0
+        system.DAE.Gx[self.v, :] = 0
+
 
 
 
@@ -176,3 +180,11 @@ class slack(base_device):
 
         system.DAE.Gy[self.a,self.a] = 1
         system.DAE.Gy[self.v,self.v] = 1
+
+    def Fxcall(self):
+
+        system.DAE.Fy[:, self.v] = 0
+        system.DAE.Gx[self.v, :] = 0
+
+        system.DAE.Fy[:, self.a] = 0
+        system.DAE.Gx[self.a, :] = 0
