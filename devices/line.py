@@ -78,6 +78,9 @@ class line(base_device):
         system.DAE.Y_G = self.Y.real()
 
         system.DAE.Y_B = self.Y.imag()
+        print(system.DAE.Y_G)
+        print(system.DAE.Y_B)
+
 
 
 
@@ -86,10 +89,16 @@ class line(base_device):
 
     def gcall(self):
 
-
-        system.DAE.y = matrix(system.DAE.y)
-        Vn = exp(system.DAE.y[system.Bus.a] * 1j)
-        Vc = mul(system.DAE.y[system.Bus.v] + 0j, Vn)
+        zeros = [0] * system.Bus.n
+        Vn = zeros[:]
+        Vc = zeros[:]
+        for item1, item2 in zip(system.Bus.a, system.Bus.v):
+            Vn[item1] = exp(system.DAE.y[item1] * 1j)
+            Vc[item1] = (system.DAE.y[item2] + 0j) * Vn[item1]
+        # system.DAE.y = matrix(system.DAE.y)
+        # Vn = exp(system.DAE.y[system.Bus.a] * 1j)
+        # Vc = mul(system.DAE.y[system.Bus.v] + 0j, Vn)
+        Vc = matrix(Vc)
         Ic = self.Y * Vc
         S = mul(Vc, Ic.H.T)
 
@@ -134,9 +143,11 @@ class line(base_device):
 
 
         Gy=sparse([[dR.imag(),dR.real()],[dS.real(),dS.imag()]])
+        # system.DAE.Gy = zeros([system.DAE.ny,system.DAE.ny])
         system.DAE.Gy = spmatrix(Gy.V, Gy.I, Gy.J, (system.DAE.ny, system.DAE.ny))
 
         system.DAE.Gy = matrix(system.DAE.Gy)
+        # print(Gy[0,0])
 
 
 

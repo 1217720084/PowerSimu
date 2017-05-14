@@ -21,7 +21,7 @@ class bus(base_device):
                 self.__dict__[self._bus[index][1]].append(self.int[item] + self.n)
 
     def yinit(self, dae):
-        zeros = [0] * (2*self.n)
+        zeros = [0] * (2*self.n + 2*system.Statcom.n)
         dae.y = zeros[:]
         dae.g = zeros[:]
         #dae.Gy = sparse(m*m)
@@ -29,6 +29,9 @@ class bus(base_device):
             dae.y[item] = 0.0
         for item in self.V0:
             dae.y[item] = 1.0
+        for item in range(system.Statcom.n):
+            dae.y[2*self.n+2*item] = 0.0
+            dae.y[2*self.n+2*item+1] = 1.0
 
 
 

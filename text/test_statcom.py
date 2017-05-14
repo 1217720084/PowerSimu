@@ -1,11 +1,3 @@
-# _*_ coding:utf-8 _*_
-"""
-
-测试读取数据
-
-"""
-# import
-
 import system
 from cvxopt.base import spmatrix, sparse, matrix, mul
 from cvxopt.umfpack import numeric, symbolic, solve    #模块cvxopt.umfpack包含四个用于求解稀疏非对称线性方程组的函数
@@ -16,6 +8,7 @@ from numpy.linalg import eigvals, eig
 from cvxopt.umfpack import linsolve
 from scipy import linalg
 from cvxopt.lapack import gesv
+
 # 开始时间
 start = clock()
 
@@ -29,8 +22,11 @@ system.Syn6._init_data()
 system.Avr1._init_data()
 system.Avr2._init_data()
 system.Tg1._init_data()
+system.Statcom._init_data()
 
-case = open('text_d_036.txt')
+case = open('text_d_004_statcom.txt')
+# case = open('text_d_014_statcom.txt')
+
 for each_line in case:
 
     data = each_line.split()
@@ -193,7 +189,22 @@ for each_line in case:
         T5 = float(data[11])
         Tg1_case = {'bus': bus, 'Type': Type, 'wref0': wref0, 'R': R, 'Pmax': Pmax, 'Pmin': Pmin, 'Ts': Ts, 'Tc': Tc,
                      'T3': T3, 'T4': T4, 'T5': T5}
-        # system.Tg1.add(**Tg1_case)
+
+    if data[0] == 'Statcom':
+
+        bus = 'Bus_' + str(data[1])
+        Sn = float(data[2])
+        Vn = float(data[3])
+        fn = float(data[4])
+        Kr = float(data[5])
+        Tr = float(data[6])
+        Imax = float(data[7])
+        Imin = float(data[8])
+        gsh = float(data[9])
+        bsh = float(data[10])
+        Vref = float(data[11])
+        Statcom_case = {'Sn': Sn, 'bus': bus, 'Vn': Vn, 'Imax': Imax, 'Imin': Imin, 'fn': fn, 'Kr':Kr,'Tr':Tr ,'gsh':gsh,'bsh':bsh,'Vref':Vref}
+        system.Statcom.add(**Statcom_case)
 
 case.close()
 
@@ -231,31 +242,51 @@ system.Shunt._bus_index()
 
 # Line
 system.Line._bus_index()
-
 system.Line.build_y()
 
-#system.DAE.Y = sparse(system.DAE.Y)
-#print(system.DAE.Y)
-system.Line.gcall()
-system.PQ.gcall()
-system.Shunt.gcall()
-system.PV.gcall()
-system.SW.gcall()
-# print(system.DAE.g)
-# print(system.DAE.y)
+#statcom
+system.Statcom._bus_index()
+system.Statcom._xy_index()
+
+
+
+# system.Line.gcall()
+# system.PQ.gcall()
+# system.Shunt.gcall()
+# system.PV.gcall()
+# system.SW.gcall()
+# system.Statcom.gcall()
+
 
 
 def calcInc():
     global F
+    print('y')
+    print(system.DAE.y)
     system.Line.gcall()
     system.PQ.gcall()
     system.Shunt.gcall()
     system.PV.gcall()
     system.SW.gcall()
+    system.Statcom.gcall()
+    print('g')
+    print(system.DAE.g)
     system.Line.Gycall()
     system.Shunt.Gycall()
     system.PV.Gycall()
     system.SW.Gycall()
+    system.Statcom.Gycall()
+    # system.Statcom.Gycall()
+    print('Gy')
+    print(system.DAE.Gy)
+    # for i in range(30):
+    #     print(system.DAE.Gy[13, i])
+    # for i in range(30):
+    #     print(system.DAE.Gy[27, i])
+    # for i in range(30):
+    #     print(system.DAE.Gy[28, i])
+    # for i in range(30):
+    #     print(system.DAE.Gy[29, i])
     A = sparse(system.DAE.Gy)
     inc = matrix(system.DAE.g)
     if system.DAE.factorize:
@@ -288,12 +319,12 @@ cycle = True
 err = []
 
 
-
-
-    #main loop
+#main loop
 while cycle or (max(abs(system.DAE.g)) > tol and iteration <= iter_max):
 
     inc = calcInc()
+    print('inc')
+    print(inc)
     cycle = False
     system.DAE.y -= inc
     err.append(max(abs(system.DAE.g)))
@@ -317,7 +348,7 @@ t = finish - start
 print('潮流计算运行时间：%f' % t)
 
 for i in range(system.DAE.ny):
-    system.DAE.y[i] = round(system.DAE.y[i], 5)
+    # system.DAE.y[i] = round(system.DAE.y[i], 5)
     print(system.DAE.y[i])
 
 
@@ -339,160 +370,4 @@ system.Shunt.gcall()
 system.DAE._list2matrix()
 system.Bus.Pg = system.DAE.g[system.Bus.a]
 system.Bus.Qg = system.DAE.g[system.Bus.v]
-# print('Bus.Pg、Qg')
-# print(system.Bus.Pg)
-# print(system.Bus.Qg)
-
-
-# 测试Syn6
-system.Syn6._bus_index()
-system.Syn6._dxy_index()
-
-# 测试Avr
-system.Avr1._bus_index()
-system.Avr2._bus_index()
-system.Avr1.getbus()
-system.Avr2.getbus()
-system.Avr2._dxy_index()
-system.Avr1._dxy_index()
-
-
-# 重新生成对应维度的x, y, g, f
-system.DAE.x = [0.0] * system.DAE.nx
-system.DAE.f = [0.0] * system.DAE.nx
-system.DAE.y = list(system.DAE.y)
-system.DAE.g = list(system.DAE.g)
-
-# 重新生成雅可比矩阵
-system.DAE.Gy = matrix(0.0, (system.DAE.ny, system.DAE.ny))
-system.DAE.Fx = matrix(0.0, (system.DAE.nx, system.DAE.nx))
-system.DAE.Fy = matrix(0.0, (system.DAE.nx, system.DAE.ny))
-system.DAE.Gx = matrix(0.0, (system.DAE.ny, system.DAE.nx))
-
-
-
-newy = [0]*(system.DAE.ny-system.Bus.n * 2)
-system.DAE.y.extend(newy)
-system.DAE.g.extend(newy)
-system.DAE.y = matrix(system.DAE.y)
-
-# 测试Syn6 setx0
-system.Syn6._list2matrix()
-system.Syn6.base(Vb=system.Bus.Vb[system.Syn6.a])
-system.Syn6.setx0()
-# print('Syn6 setx0')
-# print(system.DAE.x)
-# 测试Avr setx0
-
-system.Avr1._list2matrix()
-system.Avr2._list2matrix()
-# system.Avr1.base(Vb=system.Bus.Vb[system.Avr1.a])
-# system.Avr2.base(Vb=system.Bus.Vb[system.Avr2.a])
-system.Avr1.setx0()
-system.Avr2.setx0()
-# print('Avr setx0')
-# print(system.DAE.y)
-
-
-# 重新生成微分代数方程和雅可比矩阵
-
-system.DAE.g = matrix(0.0, (system.DAE.ny, 1))
-
-# call
-system.DAE._list2matrix()
-system.Line.gcall()
-system.PQ.gcall()
-system.Shunt.gcall()
-system.Syn6.gcall() # 测试到这里
-system.Avr1.gcall()
-system.Avr2.gcall()
-system.PV.gcall()
-#system.SW.gcall()
-system.Line.Gycall()
-system.Shunt.Gycall()
-system.Syn6.Gycall()
-system.Avr1.Gycall()
-system.Avr2.Gycall()
-system.PV.Gycall()
-system.SW.Gycall()
-
-
-
-system.Syn6.fcall()
-system.Avr1.fcall()
-system.Avr2.fcall()
-# print(system.DAE.f)
-system.Syn6.Fxcall()
-system.Avr1.Fxcall()
-system.Avr2.Fxcall()
-
-system.DAE.Gy = sparse(system.DAE.Gy)
-system.DAE.Fx = sparse(system.DAE.Fx)
-system.DAE.Fy = sparse(system.DAE.Fy)
-system.DAE.Gx = sparse(system.DAE.Gx)
-# print(system.DAE.Fx.V)
-# 生成状态矩阵
-
-def state_matrix():
-
-    Gyx = matrix(system.DAE.Gx)
-    linsolve(sparse(system.DAE.Gy), Gyx)
-    I = []
-    J = []
-    for i in range(system.DAE.nx):
-        I.append(i)
-        J.append(i)
-    return system.DAE.Fx - system.DAE.Fy * Gyx -spmatrix(1e-6, I, J)
-
-# state_matrix()
-As = state_matrix()
-# As = sparse(As)
-# 计算特征值
-
-# cvxopt
-# def eigs():
-#     As = state_matrix()
-#     return eigvals(As)
-# eigen = eigs()
-
-# print(matrix(eigs()))
-
-# numpy
-# w = np.linalg.eigvals(As)
-# w = matrix(w)
-# print(np.linalg.eigvals(As))
-
-# scipy
-w, v= linalg.eig(As)
-print(matrix(w))
-
-# 计算参与因子
-
-# set_printoptions(threshold = 'nan')
-
-def compute_eig(As):
-
-    mu, N = eig(matrix(As))
-    N = matrix(N)
-    n =len(mu)
-    idx = range(n)
-    W = matrix(spmatrix(1.0, idx, idx, (n, n), N.typecode))
-    gesv(N, W)
-    # W = np.linalg.pinv(N)
-    # W = matrix(W)
-    pf = mul(abs(W.T), abs(N))
-    b = matrix(1.0, (1, n))
-    WN = b * pf
-    pf = pf.T
-
-    for item in idx:
-
-        mur = mu[item].real
-        mui = mu[item].imag
-        mu[item] = complex(round(mur, 5), round(mui, 5))
-        pf[item, :] /= WN[item]
-
-    # print(pf)
-
-compute_eig(As)
 
