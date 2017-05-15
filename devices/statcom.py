@@ -9,7 +9,7 @@ class statcom(base_device):
     def __init__(self):
 
         base_device.__init__(self)
-        self._data.update({'Sn': 1, 'bus': None, 'Vn': 1, 'Imax': 1.2, 'Imin': 0.95, 'fn': 50, 'Kr':1,'Tr':1 ,'gsh':0.1,'bsh':0.1,'Vref':1.0})
+        self._data.update({'Sn': 1, 'bus': None, 'Vn': 1, 'Imax': 1.2, 'Imin': 0.95, 'fn': 50, 'Kr':1,'Tr':1 ,'gsh':0.1,'bsh':-0.1,'Vref':1.0})
         self._type = 'Statcom'
         self._name = 'Statcom'
         self._bus = {'bus': ['a', 'v']}

@@ -23,8 +23,9 @@ system.Avr1._init_data()
 system.Avr2._init_data()
 system.Tg1._init_data()
 system.Statcom._init_data()
+system.Sssc._init_data()
 
-case = open('text_d_004_statcom.txt')
+case = open('text_d_004_sssc.txt')
 # case = open('text_d_014_statcom.txt')
 
 for each_line in case:
@@ -206,13 +207,29 @@ for each_line in case:
         Statcom_case = {'Sn': Sn, 'bus': bus, 'Vn': Vn, 'Imax': Imax, 'Imin': Imin, 'fn': fn, 'Kr':Kr,'Tr':Tr ,'gsh':gsh,'bsh':bsh,'Vref':Vref}
         system.Statcom.add(**Statcom_case)
 
+    if data[0] == 'Sssc':
+
+        bus = 'Bus_' + str(data[1])
+        L = float(data[2])
+        gse = float(data[3])
+        bse = float(data[4])
+        Pref = float(data[5])
+        Sssc_case = {'L': L , 'bus': bus, 'gse': gse, 'bse': bse, 'Pref': Pref}
+        system.Sssc.add(**Sssc_case)
+
 case.close()
+
+#Sssc_init
+system.Sssc.adbus()
+system.Line.adbus()
+
 
 # Bus
 system.Bus._xy_index()
 system.Bus._bus_index()
 system.Bus._list2matrix()
 system.Bus.yinit(system.DAE)
+
 
 
 # PV
@@ -244,9 +261,13 @@ system.Shunt._bus_index()
 system.Line._bus_index()
 system.Line.build_y()
 
-#statcom
+#Statcom
 system.Statcom._bus_index()
 system.Statcom._xy_index()
+
+#Sssc
+system.Sssc._xy_index()
+system.Sssc._bus_index()
 
 
 
@@ -264,18 +285,20 @@ def calcInc():
     print('y')
     print(system.DAE.y)
     system.Line.gcall()
+    system.Statcom.gcall()
+    system.Sssc.gcall()
     system.PQ.gcall()
     system.Shunt.gcall()
     system.PV.gcall()
     system.SW.gcall()
-    system.Statcom.gcall()
     print('g')
     print(system.DAE.g)
     system.Line.Gycall()
+    system.Statcom.Gycall()
+    system.Sssc.Gycall()
     system.Shunt.Gycall()
     system.PV.Gycall()
     system.SW.Gycall()
-    system.Statcom.Gycall()
     # system.Statcom.Gycall()
     print('Gy')
     print(system.DAE.Gy)

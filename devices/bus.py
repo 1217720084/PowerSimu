@@ -1,6 +1,7 @@
 from devices.base_device import base_device
 import system
 from cvxopt.base import matrix, sin, cos
+import math
 class bus(base_device):
 
     def __init__(self):
@@ -21,7 +22,7 @@ class bus(base_device):
                 self.__dict__[self._bus[index][1]].append(self.int[item] + self.n)
 
     def yinit(self, dae):
-        zeros = [0] * (2*self.n + 2*system.Statcom.n)
+        zeros = [0] * (2*self.n + 2*system.Statcom.n + 2*system.Sssc.n)
         dae.y = zeros[:]
         dae.g = zeros[:]
         #dae.Gy = sparse(m*m)
@@ -32,6 +33,9 @@ class bus(base_device):
         for item in range(system.Statcom.n):
             dae.y[2*self.n+2*item] = 0.0
             dae.y[2*self.n+2*item+1] = 1.0
+        for item in range(system.Sssc.n):
+            dae.y[2*self.n+2*system.Statcom.n+2*item] = -math.pi/2
+            dae.y[2*self.n+2*system.Statcom.n+2*item+1] = 0.1
 
 
 

@@ -26,13 +26,14 @@ from devices.turbine import tg1, tg2
 from devices.pss import pss1, pss2, pss3
 from devices.ind import ind3
 from devices.statcom import statcom
+from devices.sssc import sssc
 
 # list of all active devices
 device_list = ['Bus ', 'Area', 'Region', 'System', 'Line',
                'shunt', 'Breaker', 'Fault', 'PV', ' SW ', 'Syn2',
                'Syn3', 'Syn4', 'Syn5a', 'Syn5b', 'Syn5c', 'Syn5d',
                'Syn6a', 'Syn6b', 'Avr1', 'Avr2', 'Avr3', 'Tg1',
-               'Tg2', 'Pss1', 'Pss2', 'Pss3', 'Statcom']
+               'Tg2', 'Pss1', 'Pss2', 'Pss3', 'Statcom','Sssc']
 
 # settings
 Settings = settings()  # power flow and time domain settings
@@ -57,6 +58,7 @@ Area = zone('Area')
 Region = zone('Region')
 System = zone('System')
 Statcom = statcom()
+Sssc = sssc()
 
 # switches
 Fault = fault()

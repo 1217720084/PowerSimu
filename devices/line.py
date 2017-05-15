@@ -20,6 +20,14 @@ class line(base_device):
         self._params.extend(['fn', 'kT', 'r', 'x', 'tap_ratio', 'theta', 'Imax', 'Pmax', 'Smax'])
         self.z = ['r', 'x']
 
+    def adbus(self):
+
+        for i in range(system.Sssc.n):
+            if self.__dict__['f_bus'][int(system.Sssc.L[i])] == system.Sssc.bus[i]:
+                self.__dict__['f_bus'][int(system.Sssc.L[i])] = 'Bus_' + str(system.Bus.n - system.Sssc.n + i + 1)
+            if self.__dict__['to_bus'][int(system.Sssc.L[i])] == system.Sssc.bus[i]:
+                self.__dict__['to_bus'][int(system.Sssc.L[i])] = 'Bus_' + str(system.Bus.n + i)
+
     def _bus_index(self):
 
         idx = []
