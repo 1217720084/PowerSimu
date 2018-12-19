@@ -30,6 +30,14 @@ class base_device:
         self._y = []        # 导纳
         self._service = []  # 辅助变量
 
+        self.properties = {'gcall': False, 'fcall': False, 'Gycall': False,
+                           'Fxcall': False, 'windup': False, 'pflow': False,
+                           'xinit': False, 'shunt': False, 'series': False,
+                           'flows': False, 'connection': False, 'times': False,
+                           'stagen': False, 'dyngen': False, 'gmcall': False,
+                           'fmcall': False, 'dcseries': False, 'opf': False,
+                           'obj': False}
+
         #非零参数
         self._zeros = ['Sn', 'Vn']
 
@@ -51,6 +59,8 @@ class base_device:
 #初始化数据
 
     def _init_data(self):
+
+        self.n = 0
 
         for arg in self._data:
             self.__dict__[arg] = []
@@ -86,6 +96,7 @@ class base_device:
             self.__dict__[var] /= Sb
 
         if len(self._z) or len(self._y):
+
             Zn = div(self.Vn**2, self.Sn)
             #print(Zn)
             Zb = div(mul(Vb, Vb), Sb)

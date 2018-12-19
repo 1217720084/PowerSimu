@@ -4,6 +4,7 @@
 import system
 from devices.base_device import base_device
 from cvxopt.base import mul, matrix, exp, div, spmatrix
+import random
 
 class avr1(base_device):
     def __init__(self):
@@ -14,6 +15,7 @@ class avr1(base_device):
              'T4': 0, 'Te': 0, 'Tr': 0, 'Ae': 0, 'Be': 0})
         self._type = 'Avr1'
         self._name = 'Avr1'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['vref']  # 后续得修改
         self._states = ['vm', 'vr1', 'vr2', 'vf']  # 后续得修改
@@ -23,7 +25,13 @@ class avr1(base_device):
         self.ba = []
         self.bv = []
 
+        self.properties.update({'gcall': True, 'Gycall': True,
+                                'fcall': True, 'Fxcall': True})
+
     def setx0(self):
+
+        if self.n == 0:
+            return
 
         vg = system.DAE.y[self.bv]
         vf = mul(self.u, system.Syn6.vf0[self.a])
@@ -80,6 +88,9 @@ class avr1(base_device):
 
     def gcall(self):
 
+        if self.n == 0:
+            return
+
         self.vfd = system.Syn6.vf[self.a]
 
 
@@ -90,9 +101,15 @@ class avr1(base_device):
 
     def Gycall(self):
 
+        if self.n == 0:
+            return
+
         system.DAE.Gy = system.DAE.Gy - spmatrix([1]*self.n, self.vref, self.vref, (system.DAE.ny, system.DAE.ny))
 
     def fcall(self):
+
+        if self.n == 0:
+            return
 
         vg = system.DAE.y[self.bv]
         vrmax = mul(self.u, self.vrmax)
@@ -128,6 +145,9 @@ class avr1(base_device):
         system.DAE.f[self.vf] = div(mul(self.u, -vf+vr-mul(Se, vf)), self.Te)
 
     def Fxcall(self):
+
+        if self.n == 0:
+            return
 
         vg = system.DAE.y[self.bv]
         vrmax = mul(self.u, self.vrmax)
@@ -175,6 +195,17 @@ class avr1(base_device):
                         + spmatrix(div(mul(K4, K1), mul(self.K0, self.T3)), self.vr2, self.vref, (system.DAE.nx, system.DAE.ny)) \
                         + spmatrix(div(mul(mul(z, K3), K1), self.Te), self.vf, self.vref, (system.DAE.nx, system.DAE.ny))
 
+    def suiji(self, muvref01, sigmavref):
+
+        if self.n == 0:
+            return
+
+        for i in range(self.n):
+            a = random.normalvariate(muvref01[i], sigmavref)
+
+            self.vref0[i] = a
+
+
 class avr2(base_device):
     def __init__(self):
         base_device.__init__(self)
@@ -182,8 +213,9 @@ class avr2(base_device):
         self._data.update(
             {'bus': None, 'Type': 2, 'vrmax': 5, 'vrmin': 0, 'Ka': 0, 'Ta': 0, 'Kf': 0, 'Tf': 0,
              'Ke': 0, 'Te': 0, 'Tr': 0, 'Ae': 0, 'Be': 0})
-        self._type = 'Avr1'
-        self._name = 'Avr1'
+        self._type = 'Avr2'
+        self._name = 'Avr2'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['vref']  # 后续得修改
         self._states = ['vm', 'vr1', 'vr2', 'vf']  # 后续得修改
@@ -192,6 +224,9 @@ class avr2(base_device):
         self._powers = ['Pg']  # 后续得修改
         self.ba = []
         self.bv = []
+
+        self.properties.update({'gcall': True, 'Gycall': True,
+                                'fcall': True, 'Fxcall': True})
 
 
     def setx0(self):
@@ -221,7 +256,7 @@ class avr2(base_device):
                 print('<%i> T4不能小于等于0，设置T4 = 0.1 [s]' % i)
 
         #
-        Ce = mul(self.Ke, vf) - mul(mul(self.Ae, exp(mul(self.Be, vf))), vf)
+        Ce = mul(self.Ke, vf) + mul(mul(self.Ae, exp(mul(self.Be, abs(vf)))), vf)
 
 
         system.DAE.x[self.vm] = mul(self.u, vg)
@@ -235,11 +270,14 @@ class avr2(base_device):
 
         for i in range(self.n):
             if Ce[i] > self.vrmax[i]:
-                print('Warn: vr2超出最大值vrmax')
+                print('Warn: vr1超出最大值vrmax')
             if Ce[i] < self.vrmin[i]:
-                print('Warn: vr2小于最小值vrmin')
+                print('Warn: vr1小于最小值vrmin')
 
-        system.Syn6.vf0[self.a] = 0
+        for i in range(self.n):
+            if self.u[i] == 1:
+                system.Syn6.vf0[self.a[i]] = 0
+        # system.Syn6.vf0[self.a] = 0
 
     def getbus(self):
         for i in range(self.n):
@@ -270,6 +308,8 @@ class avr2(base_device):
         vr2 = system.DAE.x[self.vr2]
         vf = system.DAE.x[self.vf]
         vref = system.DAE.y[self.vref]
+
+        system.DAE.f[self.vm] = div(mul(self.u, vg - system.DAE.x[self.vm]), self.Tr)  #
 
         K5 = div(self.Kf, self.Tf)
 
@@ -313,7 +353,7 @@ class avr2(base_device):
 
         Se = mul(self.Ae, exp(mul(self.Be, abs(vf))))
 
-        Se = Se + mul(mul(Se, self.Ae), vf)
+        Se = Se + mul(mul(Se, self.Be), vf)
 
         z = matrix(0, (self.n, 1))
         for i in range(self.n):
@@ -332,8 +372,33 @@ class avr2(base_device):
         system.DAE.Fy = system.DAE.Fy \
                         + spmatrix(div(mul(z, Ka), self.Ta), self.vr1, self.vref, (system.DAE.nx, system.DAE.ny))
 
+    def windup(self, type):
+        idx = self.vr1
+        xmax = self.vrmax
+        xmin = self.vrmin
+
+        if type == 'td':
+            x = system.DAE.x[idx]
+            for i in range(len(x)):
+                if x[i] >= xmax[i] or x[i] <= xmin[i]:
+                    if system.DAE.f[idx[i]] == 0:
+
+                        system.DAE.tn[idx[i]] = 0
+                        system.DAE.Ac[idx[i], :] = 0
+                        system.DAE.Ac[:, idx[i]] = 0
+                        system.DAE.Ac = system.DAE.Ac - spmatrix(1.0, [idx[i]], [idx[i]], ((system.DAE.nx+system.DAE.ny, system.DAE.nx+system.DAE.ny)))
 
 
-class avr3():
+    def suiji(self, muvref02, sigmavref):
+
+        for i in range(self.n):
+            a = random.normalvariate(muvref02[i], sigmavref)
+
+            self.vref0[i] = a
+
+
+
+class avr3(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return

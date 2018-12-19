@@ -15,13 +15,19 @@ class shunt(base_device):
         self._data.update({'fn': 50, 'bus': None, 'g': 1, 'b': 1.1})
         self._type = 'Shunt'
         self._name = 'Shunt'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._params.extend(['fn', 'g', 'b'])
         self._y = ['g', 'b']
 
+        self.properties.update({'gcall': True, 'Gycall': True})
+
 
 
     def gcall(self):
+
+        if self.n == 0:
+            return
 
         system.DAE.y = matrix(system.DAE.y)
         V = system.DAE.y[self.v]
@@ -55,24 +61,34 @@ class shunt(base_device):
         for key, value in zip(self.v, q):
             system.DAE.g[key] -= value
     def Gycall(self):
-        system.DAE.y=matrix(system.DAE.y)
-        V=2*system.DAE.y[self.v]        #shunt bus 的索引？
-        conductance = self.g   #网络中每条母线的电导列向量
-        conductance = matrix(conductance)
-        susceptance = self.b    #电纳列向量
-        susceptance = matrix(susceptance)
 
-        m=len(system.DAE.y)        #代数变量的个数
-        conducv=mul(conductance,V)
+        if self.n == 0:
+            return
 
-        suscepv=mul(susceptance,V)
+        V = 2 * system.DAE.y[self.v]
+        g = matrix(self.g)
+        b = matrix(self.b)
+        m = system.DAE.ny
 
-
-        spconducv = spmatrix(conducv, self.a, self.v, (m, m), 'z')
-
-        spcsuscepv = spmatrix(suscepv, self.v,self.v, (m, m), 'z')
-
-
-        system.DAE.Gy = system.DAE.Gy + spmatrix(conducv, self.a, self.v, (m, m), 'z')- spmatrix(suscepv, self.v,self.v, (m, m), 'z')
-        system.DAE.Gy = sparse(system.DAE.Gy)
-        system.DAE.Gy = matrix(system.DAE.Gy.real())
+        system.DAE.Gy = system.DAE.Gy + spmatrix(mul(V, g), self.a, self.v, (m, m)) - spmatrix(mul(V, b), self.v, self.v, (m, m))
+        # system.DAE.y=matrix(system.DAE.y)
+        # V=2*system.DAE.y[self.v]        #shunt bus 的索引？
+        # conductance = self.g   #网络中每条母线的电导列向量
+        # conductance = matrix(conductance)
+        # susceptance = self.b    #电纳列向量
+        # susceptance = matrix(susceptance)
+        #
+        # m=len(system.DAE.y)        #代数变量的个数
+        # conducv=mul(conductance,V)
+        #
+        # suscepv=mul(susceptance,V)
+        #
+        #
+        # spconducv = spmatrix(conducv, self.a, self.v, (m, m), 'z')
+        #
+        # spcsuscepv = spmatrix(suscepv, self.v,self.v, (m, m), 'z')
+        #
+        #
+        # system.DAE.Gy = system.DAE.Gy + spmatrix(conducv, self.a, self.v, (m, m), 'z')- spmatrix(suscepv, self.v,self.v, (m, m), 'z')
+        # system.DAE.Gy = sparse(system.DAE.Gy)
+        # system.DAE.Gy = matrix(system.DAE.Gy.real())

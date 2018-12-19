@@ -3,7 +3,7 @@
 """
 from devices.base_device import base_device
 import system
-from cvxopt.base import matrix
+from cvxopt.base import matrix, spmatrix
 
 
 class pv(base_device):
@@ -13,12 +13,16 @@ class pv(base_device):
         self._data.update({'Pg': 1, 'pq': 0, 'qg': 0, 'bus': None, 'qgmax': 6, 'qgmin': -6, 'V0': 1.05, 'Vmax': 1.1, 'Vmin': 0.95})
         self._type = 'PV'
         self._name = 'PV'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['Va', 'V0']
         self._params.extend(['Pg', 'qgmax', 'qgmin', 'V0', 'Vmax', 'Vmin'])
         self.n_PV = 0
         self._voltages = ['V0']
         self._powers = ['Pg']
+
+        self.properties.update({'gcall': True, 'Gycall': True,
+                                'fcall': True, 'Fxcall': True})
 
 
     def yinit(self, dae):
@@ -32,6 +36,8 @@ class pv(base_device):
             dae.g[key] += value
 
     def gcall(self):
+        if self.n == 0:
+            return
 
         system.DAE.y = matrix(system.DAE.y)
         system.DAE.g = matrix(system.DAE.g)
@@ -81,12 +87,19 @@ class pv(base_device):
 
         for i in range(system.PV.n):
             system.DAE.g[self.v[i]] -= self.qg[i]
-    def Gycall(self):
 
-        for i in self.v:
-            system.DAE.Gy[i, :] = 0
-            system.DAE.Gy[:, i] = 0
-            system.DAE.Gy[i, i] = 1
+    def Gycall(self):
+        if self.n == 0:
+            return
+
+        m = system.DAE.ny
+        system.DAE.Gy[self.v, :] = 0
+        system.DAE.Gy[:, self.v] = 0
+        system.DAE.Gy = system.DAE.Gy + spmatrix(1.0, self.v, self.v, (m, m))
+        # for i in self.v:
+        #     system.DAE.Gy[i, :] = 0
+        #     system.DAE.Gy[:, i] = 0
+        #     system.DAE.Gy[i, i] += 1
 
     def Fxcall(self):
         system.DAE.Fy[:, self.v] = 0
@@ -103,11 +116,14 @@ class slack(base_device):
         self._data.update({'Pg': 1, 'dq': 0, 'bus': None, 'qgmax': 6, 'qgmin': -6, 'V0': 1.05, 'Vmax': 1.1, 'Vmin': 0.95, 'Va': 0})
         self._type = 'SW'
         self._name = 'SW'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['V0', 'Va']
         self._params.extend(['Pg', 'qgmax', 'qgmin', 'V0', 'Vmax', 'Vmin', 'Va'])
         self._voltages = ['V0']
         self._powers = ['Pg']
+
+        self.properties.update({'gcall': True, 'Gycall': True})
 
     def yinit(self, dae):
 
@@ -124,6 +140,9 @@ class slack(base_device):
             dae.g[key] = 0
 
     def gcall(self):
+
+        if self.n == 0:
+            return
 
         for i in range(system.SW.n):
             system.DAE.g[self.a[i]] = 0
@@ -173,13 +192,17 @@ class slack(base_device):
             system.DAE.g[self.v[i]] -= self.qg[i]
 
     def Gycall(self):
-        system.DAE.Gy[self.a,:] = 0
+        if self.n == 0:
+            return
+        system.DAE.Gy[self.a, :] = 0
         system.DAE.Gy[:, self.a] = 0
-        system.DAE.Gy[self.v,:] = 0
+        system.DAE.Gy[self.v, :] = 0
         system.DAE.Gy[:, self.v] = 0
 
-        system.DAE.Gy[self.a,self.a] = 1
-        system.DAE.Gy[self.v,self.v] = 1
+        m = system.DAE.ny
+
+        system.DAE.Gy = system.DAE.Gy + spmatrix(1.0, self.a, self.a, (m, m))
+        system.DAE.Gy = system.DAE.Gy + spmatrix(1.0, self.v, self.v, (m, m))
 
     def Fxcall(self):
 

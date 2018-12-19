@@ -16,6 +16,7 @@ from numpy.linalg import eigvals, eig
 from cvxopt.umfpack import linsolve
 from scipy import linalg
 from cvxopt.lapack import gesv
+import scipy.io as sio
 # 开始时间
 start = clock()
 
@@ -311,14 +312,14 @@ if iteration > iter_max:
 
 # 结束时间
 
-finish = clock()
+# finish = clock()
+#
+# t = finish - start
+# print('潮流计算运行时间：%f' % t)
 
-t = finish - start
-print('潮流计算运行时间：%f' % t)
-
-for i in range(system.DAE.ny):
-    system.DAE.y[i] = round(system.DAE.y[i], 5)
-    print(system.DAE.y[i])
+# for i in range(system.DAE.ny):
+#     system.DAE.y[i] = round(system.DAE.y[i], 5)
+#     print(system.DAE.y[i])
 
 
 # 计算Pl和Ql
@@ -393,6 +394,10 @@ system.Avr2.setx0()
 # print('Avr setx0')
 # print(system.DAE.y)
 
+finish = clock()
+
+t = finish - start
+print('潮流计算运行时间：%f' % t)
 
 # 重新生成微分代数方程和雅可比矩阵
 
@@ -463,8 +468,11 @@ As = state_matrix()
 # print(np.linalg.eigvals(As))
 
 # scipy
-w, v= linalg.eig(As)
-print(matrix(w))
+w, v = linalg.eig(As)
+# print(matrix(w))
+# for i in range(system.DAE.nx):
+#      w[i] = round(w[i], 5)
+#      print(w[i])
 
 # 计算参与因子
 
@@ -489,10 +497,44 @@ def compute_eig(As):
 
         mur = mu[item].real
         mui = mu[item].imag
-        mu[item] = complex(round(mur, 5), round(mui, 5))
+        # mu[item] = complex(round(mur, 5), round(mui, 5))
         pf[item, :] /= WN[item]
 
-    # print(pf)
+    return pf
 
-compute_eig(As)
+pf = compute_eig(As)
+# print(pf)
+
+finish = clock()
+
+t = finish - start
+print('小干扰计算运行时间：%f' % t)
+
+# pf0 = pf[0, :]
+# print(type(pf))
+# for i in range(system.DAE.nx):
+#     print(pf0[i])
+# print(system.Shunt.__dict__)
+# print(system.PQ.__dict__)
+# print(system.PV.__dict__)
+# print(system.Line.__dict__)
+
+f = open('excpf.txt', 'w+')
+for i in range(system.DAE.nx):
+    pfrow = []
+    for j in range(system.DAE.nx):
+        p = str(round(pf[i, j], 12))
+        # pfrow.append(round(pf[i, j], 12))
+        f.write(p+' ')
+    f.write('\n')
+    # f.writelines(pfrow)
+    # print(pfrow)
+f.close()
+# for j in range(system.DAE.nx):
+#     print('第%i列'%i)
+#     for i in range(system.DAE.nx):
+#         pf[i, j] = round(pf[i, j], 12)
+#         print(pf[i, j])
+sio.savemat('eig.mat', {'eig': w, 'pf': pf})
+
 

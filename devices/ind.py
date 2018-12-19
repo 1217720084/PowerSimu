@@ -6,6 +6,7 @@ import system
 from devices.base_device import base_device
 from cvxopt.base import mul, matrix, exp, div, sin, cos, spmatrix
 import numpy as np
+import math
 
 class ind3(base_device):
 
@@ -17,6 +18,7 @@ class ind3(base_device):
         self._type = 'Ind'
         self._name = 'Ind'
         self._bus = {'bus': ['a', 'v']}
+        self.n = 0
         self._algebs = []
         self._states = ['slip', 'e1r', 'e1m']
         self._params.extend(['fn',  'Sn', 'Vn', 'sup', 'rs', 'xs',
@@ -26,9 +28,12 @@ class ind3(base_device):
         self._z = ['rs', 'xs', 'rr1', 'xr1', 'rr2', 'xr2', 'xm']
         self._powers = ['Hm', 'a1', 'b', 'c']
 
+        self.properties.update({'gcall': True, 'Gycall': True,
+                                'fcall': True, 'Fxcall': True})
+
     def setdata(self):
 
-        Wn = 2 * 3.1415926 * system.Settings.freq
+        Wn = 2 * math.pi * system.Settings.freq
 
         # 转矩系数：A+B*slip+C*slip^2
 
@@ -149,7 +154,7 @@ class ind3(base_device):
 
         u = self.u  # 后续得修改
 
-        Wn = 2 * 3.1415926 * system.Settings.freq * u
+        Wn = 2 * math.pi * system.Settings.freq * u
 
         V = mul(self.u, system.DAE.y[self.v])  # 后续得修改
         t = system.DAE.y[self.a]
@@ -195,7 +200,7 @@ class ind3(base_device):
             else:
                 z[i] = 0
 
-        Wn = 2 * 3.1415926 * system.Settings.freq * u
+        Wn = 2 * math.pi * system.Settings.freq * u
 
         V = mul(self.u, system.DAE.y[self.v])  # 后续得修改
         t = system.DAE.y[self.a]
@@ -264,14 +269,46 @@ class ind3(base_device):
                         - spmatrix(mul(mul(e1r, Br) + mul(e1m, Bm), i2Hm), is3, self.v, (system.DAE.nx, system.DAE.ny)) \
                         - spmatrix(div(mul(a33, Bm), self.T10), er3, self.v, (system.DAE.nx, system.DAE.ny)) \
                         + spmatrix(div(mul(a33, Br), self.T10), em3, self.v, (system.DAE.nx, system.DAE.ny))
-        print('a')
+
 
 
     def xinit(self):
 
+        if self.n == 0:
+            return
+
         system.DAE.x[self.e1r] = 0.05
         system.DAE.x[self.slip] = 0
         system.DAE.x[self.e1m] = 0.9
+
+    def windup(self, type):
+
+        if type == 'td':
+            idx = []
+            for i in range(self.n-1):
+                if self.allow[i] == 0:
+                    idx[i] = self.slip[i]
+            xmax = 1
+            xmin = -1e3
+            x = system.DAE.x[idx]
+
+            for i in range(len(idx)):
+                if x[idx[i]] >= xmax or x[idx[i]] <= xmin:
+                    if system.DAE.f[idx[i]] == 0:
+
+                        system.DAE.tn[idx[i]] = 0
+                        system.DAE.Ac[idx[i], :] = 0
+                        system.DAE.Ac[:, idx[i]] = 0
+                        system.DAE.Ac = system.DAE.Ac - spmatrix(1.0, [idx[i]], [idx[i]], (
+                        (system.DAE.nx + system.DAE.ny, system.DAE.nx + system.DAE.ny)))
+
+
+
+
+
+
+
+
 
 
 

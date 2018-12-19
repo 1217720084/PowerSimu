@@ -5,39 +5,48 @@ import system
 from devices.base_device import base_device
 from cvxopt.base import mul, matrix, exp, div, sin, cos, spmatrix
 import numpy as np
+import math
+import random
 
-class syn2():
+class syn2(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn3():
+class syn3(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn4():
+class syn4(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn5a():
+class syn5a(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn5b():
+class syn5b(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn5c():
+class syn5c(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
-class syn5d():
+class syn5d(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 
@@ -60,8 +69,9 @@ class syn6a(base_device):
 
 
 
-class syn6b():
+class syn6b(base_device):
     def __init__(self):
+        base_device.__init__(self)
         return
 
 class syn6(base_device):
@@ -76,6 +86,7 @@ class syn6(base_device):
              'KP': 0, 'ganmaP': 1, 'ganmaQ': 1, 'Taa': 0, 'S10': 0, 'S12': 0, 'nCOI': 0})
         self._type = 'Syn6'
         self._name = 'Syn6'
+        self.n = 0
         self._bus = {'bus': ['a', 'v']}
         self._algebs = ['vf', 'pm', 'p', 'q']
         self._states = ['delta', 'omega', 'e1q', 'e1d', 'e2q', 'e2d']
@@ -85,6 +96,9 @@ class syn6(base_device):
                              'KP', 'nCOI', 'vf'])
         self._z = ['xl', 'ra', 'xd', 'xd1', 'xd2', 'xq', 'xq1', 'xq2']
         self._powers = ['M', 'D']    # 后续得修改
+        self.suijipm0 = []
+        self.properties.update({'gcall': True, 'Gycall': True,
+                                'fcall': True, 'Fxcall': True})
 
     def setx0(self):
 
@@ -181,7 +195,8 @@ class syn6(base_device):
         system.DAE.x[self.delta] = mul(self.u, matrix(delta))
 
         # d、q轴电压和电流
-        jpi2 = 1.5707963267948966j
+        jpi2 = math.pi/2*1j
+        # jpi2 = 1.5707963267948966j
         Vdq = mul(self.u + 0j, mul(V, exp(matrix(jpi2 - delta * 1j))))
         idq = mul(self.u + 0j, mul(I, exp(matrix(jpi2 - delta * 1j))))
 
@@ -194,6 +209,7 @@ class syn6(base_device):
 
         self.pm0 = mul(Vq + mul(self.ra, Iq), Iq) + \
             mul(Vd + mul(self.ra, Id), Id)
+        self.suijipm0.append(self.pm0)
         system.DAE.y[self.pm] = self.pm0
 
         # 剩余状态变量和场电压
@@ -204,7 +220,7 @@ class syn6(base_device):
 
         system.DAE.x[self.e2q] = Vq +mul(self.ra, Iq) + mul(self.xd2, Id)
         system.DAE.x[self.e2d] = Vd + mul(self.ra, Id) - mul(self.xq2, Iq)
-        system.DAE.x[self.e1d] = div(mul(mul(mul(self.xq-self.xq1-self.Tq02, self.xq2), self.xq-self.xq1), Iq), mul(self.Tq01, self.xq1))
+        system.DAE.x[self.e1d] = mul(self.xq-self.xq1-div(mul(mul(self.Tq02, self.xq2), self.xq-self.xq1), mul(self.Tq01, self.xq1)), Iq)
         K1 = self.xd-self.xd1-div((mul(mul(self.Td02, self.xd2), (self.xd-self.xd1))), mul(self.Td01, self.xd1))
         K2 = self.xd1 - self.xd2 + div(mul(mul(self.Td02, self.xd2), self.xd - self.xd1), mul(self.Td01, self.xd1))
         system.DAE.x[self.e1q] = system.DAE.x[self.e2q] + mul(K2, Id) - div(mul(self.Taa, mul(K1+K2, Id)+system.DAE.x[self.e2q]), self.Td01)
@@ -303,7 +319,7 @@ class syn6(base_device):
 
     def fcall(self):
 
-        rad = 2 * 3.1415926 * system.Settings.freq
+        rad = 2 * math.pi * system.Settings.freq
         delta = system.DAE.x[self.delta]
         omega = system.DAE.x[self.omega]
         ag = system.DAE.y[self.a]
@@ -328,7 +344,7 @@ class syn6(base_device):
         # print(mul(self.D, omega-1))
         # print(mul(system.DAE.y[self.pm]-system.DAE.y[self.p]-mul(self.ra, mul(self.Id, self.Id)+mul(self.Iq, self.Iq))-mul(self.D, omega-1), iM))
         gd = div(mul(mul(self.xd2, self.Td02), self.xd-self.xd1), mul(self.xd1, self.Td01))
-        gq = div(mul(mul(self.xq2, self.Td02), self.xq - self.xq1), mul(self.xq1, self.Td01))
+        gq = div(mul(mul(self.xq2, self.Tq02), self.xq - self.xq1), mul(self.xq1, self.Tq01))
         a1 = div(self.u, self.Td02)
         a2 = mul(a1, self.xd1-self.xd2+gd)
         a3 = div(mul(self.u, self.Taa), mul(self.Td01, self.Td02))
@@ -368,7 +384,7 @@ class syn6(base_device):
         M3 = -(mul(self.c1, ss) + mul(self.c3, cc))
         M4 = (mul(self.c2, ss) - mul(self.c1, cc))
 
-        rad = 2 * 3.1415926 * system.Settings.freq
+        rad = 2 * math.pi * system.Settings.freq
         Wn = self.u * rad  # print(Wn)
 
         # print(mul(iM, self.D)+matrix(1, (self.n, 1))-self.u)
@@ -393,7 +409,7 @@ class syn6(base_device):
         N2 = mul(mul(-2 * self.ra, mul(self.Id, self.c1) - mul(self.Iq, self.c2)), iM)
 
         gd = div(mul(mul(self.xd2, self.Td02), self.xd - self.xd1), mul(self.xd1, self.Td01))
-        gq = div(mul(mul(self.xq2, self.Td02), self.xq - self.xq1), mul(self.xq1, self.Td01))
+        gq = div(mul(mul(self.xq2, self.Tq02), self.xq - self.xq1), mul(self.xq1, self.Tq01))
         a1 = div(self.u, self.Td02)
         a2 = mul(a1, self.xd1 - self.xd2 + gd)
         a3 = div(mul(self.u, self.Taa), mul(self.Td01, self.Td02))
@@ -470,5 +486,15 @@ class syn6(base_device):
                 output[i] = mul(2*c2[i], system.DAE.x[self.e1q[i]]) + c1[i]
 
         return output
+
+    def suiji(self, musynp, sigmasynp, t, suijih):
+
+        if t % suijih == 0.0:
+            for i in range(self.n):
+                a = random.normalvariate(musynp[i], sigmasynp)
+
+                self.pm0[i] = a
+                self.suijipm0.append(a)
+
 
 

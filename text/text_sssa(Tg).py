@@ -469,7 +469,10 @@ As = state_matrix()
 
 # scipy
 w, v = linalg.eig(As)
-print(matrix(w))
+# print(matrix(w))
+for i in range(system.DAE.nx):
+     w[i] = round(w[i], 5)
+     print(w[i])
 
 
 # 计算参与因子
@@ -497,7 +500,24 @@ def compute_eig(As):
         pf[item, :] /= WN[item]
 
         # print(pf)
+    return pf
 
 
-compute_eig(As)
+pf = compute_eig(As)
 
+finish = clock()
+
+t = finish - start
+print('小干扰计算运行时间：%f' % t)
+
+f = open('tgpf.txt', 'w+')
+for i in range(system.DAE.nx):
+    pfrow = []
+    for j in range(system.DAE.nx):
+        p = str(round(pf[i, j], 12))
+        # pfrow.append(round(pf[i, j], 12))
+        f.write(p+' ')
+    f.write('\n')
+    # f.writelines(pfrow)
+    # print(pfrow)
+f.close()

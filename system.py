@@ -26,12 +26,19 @@ from devices.turbine import tg1, tg2
 from devices.pss import pss1, pss2, pss3
 from devices.ind import ind3
 
+# 随机模块
+from devices.stochastic import stoFault
+
+# 风机
+from devices.wind import wind
+from devices.dfig import dfig
+
 # list of all active devices
-device_list = ['Bus ', 'Area', 'Region', 'System', 'Line',
-               'shunt', 'Breaker', 'Fault', 'PV', ' SW ', 'Syn2',
-               'Syn3', 'Syn4', 'Syn5a', 'Syn5b', 'Syn5c', 'Syn5d',
+device_list = ['Bus', 'Area', 'Region', 'System', 'Line',
+               'Shunt', 'Breaker', 'Fault', 'PV', 'SW', 'PQ', 'Syn2',
+               'Syn3', 'Syn4', 'Syn5a', 'Syn5b', 'Syn5c', 'Syn5d', 'Syn6',
                'Syn6a', 'Syn6b', 'Avr1', 'Avr2', 'Avr3', 'Tg1',
-               'Tg2', 'Pss1', 'Pss2', 'Pss3']
+               'Tg2', 'Pss1', 'Pss2', 'Pss3', 'Wind', 'Dfig', 'Ind3']
 
 # settings
 Settings = settings()  # power flow and time domain settings
@@ -85,9 +92,10 @@ Pss3 = pss3()
 # indution machine
 Ind3 = ind3()
 
+# 随机模块
+StoFault = stoFault()
 
-
-
-
-
+# 风机模型
+Wind = wind()
+Dfig = dfig()
 
